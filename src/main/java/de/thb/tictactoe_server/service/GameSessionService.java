@@ -1,5 +1,7 @@
 package de.thb.tictactoe_server.service;
 
+import de.thb.tictactoe_server.gameobject.Player;
+
 import java.lang.reflect.Array;
 
 /**
@@ -7,6 +9,7 @@ import java.lang.reflect.Array;
  *
  */
 public class GameSessionService {
-    private String player1, player2;
+    private Player player1, player2;
     private Array gameBoard;
+    private Integer whosTurnIsIt;
 }
