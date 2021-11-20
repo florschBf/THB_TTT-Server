@@ -1,9 +1,16 @@
 package de.thb.tictactoe_server.gameobject;
 
+/**
+ * Player GameObject holds Info about participating clients
+ * Includes name, firebaseId, uid, socketConnection, gameSession
+ */
+
 public class Player implements GameObject{
     private String name;
     private String firebaseId;
     private Long uid;
+    private String socketConnection;
+    private String gameSession;
 
     public Player(){
 

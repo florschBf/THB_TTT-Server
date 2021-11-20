@@ -6,6 +6,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 
+/**
+ * Service that provides a List of active TicTacToe players in online mode
+ */
+
 @Service
 public class PlayerListService {
     private ArrayList<Player> playerList;
