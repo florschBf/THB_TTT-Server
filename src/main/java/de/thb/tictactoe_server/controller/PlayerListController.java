@@ -21,8 +21,9 @@ public class PlayerListController {
         this.playerListService.addPlayerToList(player);
         return "User added, thank you.";
         }
-
-
-    @GetMapping("showMe")
+    //former "showMe"
+    @GetMapping("/")
     private ArrayList<Player> show(){ return playerListService.getPlayerList();}
+
+
 }
