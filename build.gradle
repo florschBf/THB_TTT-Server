@@ -2,10 +2,11 @@ plugins {
     id 'org.springframework.boot' version '2.5.7'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
     id 'java'
+    id 'com.palantir.docker' version '0.30.0'
 }
 
 group = 'com.example'
-version = '0.0.1-SNAPSHOT'
+version = '0.1'
 sourceCompatibility = '11'
 
 repositories {
@@ -22,3 +23,10 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+docker {
+    name "florsch/${project.name}:${project.version}"
+    dockerfile file('Dockerfile')
+    files 'docker/entrypoint.sh', "$buildDir/libs/"
+}
+docker.dependsOn build

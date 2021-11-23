@@ -1,6 +1,5 @@
 package de.thb.tictactoe_server.service;
 
-import de.thb.tictactoe_server.gameobject.GameObject;
 import de.thb.tictactoe_server.gameobject.Player;
 import org.springframework.stereotype.Service;
 
@@ -12,11 +11,10 @@ import java.util.ArrayList;
 
 @Service
 public class PlayerListService {
-    private ArrayList<Player> playerList;
+    private final ArrayList<Player> playerList = new ArrayList<>();
     Player testPlayer = new Player("123", "example");
 
     public PlayerListService(){
-        this.playerList = new ArrayList<Player>();
         this.addPlayerToList(testPlayer);
     }
 
@@ -26,7 +24,7 @@ public class PlayerListService {
 
     public void addPlayerToList(Player player){
         this.playerList.add(player);
-        Long newUid = this.playerList.stream().count();
+        Long newUid = (long) this.playerList.size();
         player.setUid(newUid);
     }
 }

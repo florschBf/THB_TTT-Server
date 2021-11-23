@@ -8,5 +8,5 @@ public class GreetingService {
 
     public Mono<String> greet(String name){
         return Mono.just("Hello " + name);
-    };
+    }
 }
