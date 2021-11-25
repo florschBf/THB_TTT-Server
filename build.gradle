@@ -2,7 +2,6 @@ plugins {
     id 'org.springframework.boot' version '2.5.7'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
     id 'java'
-    //id 'com.palantir.docker' version '0.30.0'
 }
 
 group = 'com.example'
@@ -15,7 +14,8 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'javax.websocket:javax.websocket-api:1.1'
+    //implementation 'javax.websocket:javax.websocket-api:1.1'
+    implementation 'org.java-websocket:Java-WebSocket:1.5.2'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
 }
@@ -23,10 +23,3 @@ dependencies {
 test {
     useJUnitPlatform()
 }
-
-docker {
-    //name "florsch/${project.name}:${project.version}"
-    //dockerfile file('Dockerfile')
-    //files 'docker/entrypoint.sh', "$buildDir/libs/"
-}
-//docker.dependsOn build

@@ -1,19 +1,27 @@
 package de.thb.tictactoe_server;
 
+import org.java_websocket.server.WebSocketServer;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
-import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+
+import java.net.InetSocketAddress;
 
 
 @SpringBootApplication
 public class ThbTicTacToeServerApplication {
 
-    public static void main(String[] args) {
+
+
+    public static void main(String[] args) throws InterruptedException {
         SpringApplication.run(ThbTicTacToeServerApplication.class, args);
+
+        String host = "localhost";
+        int port = 8088;
+        WebSocketServer server = new TicTacToeSocketServer(new InetSocketAddress(host, port));
+        server.run();
     }
 
     @Bean
