@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Websocket TTT client</title>
+    <style>
+      body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+      #form { background: rgba(0, 0, 0, 0.15); padding: 0.25rem; position: fixed; bottom: 0; left: 0; right: 0; display: flex; height: 3rem; box-sizing: border-box; backdrop-filter: blur(10px); }
+      #input { border: none; padding: 0 1rem; flex-grow: 1; border-radius: 2rem; margin: 0.25rem; }
+      #input:focus { outline: none; }
+      #form > button { background: #333; border: none; padding: 0 1rem; margin: 0.25rem; border-radius: 3px; outline: none; color: #fff; }
+
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages > li { padding: 0.5rem 1rem; }
+      #messages > li:nth-child(odd) { background: #efefef; }
+    </style>
+  </head>
+  <body>
+    <ul id="messages" style="height:200px; overflow-y:scroll;"></ul>
+    <p id ="you"></p>
+    <p id ="opponent"></p>
+
+    <div>
+        <h1>Play TicTacToe here</h1>
+        <div style="display:flex; flex-flow: row wrap;" id="buttons">
+            <button style="width:30%">1</button>
+            <button style="width:30%">2</button>
+            <button style="width:30%">3</button>
+            <button style="width:30%">4</button>
+            <button style="width:30%">5</button>
+            <button style="width:30%">6</button>
+            <button style="width:30%">7</button>
+            <button style="width:30%">8</button>
+            <button style="width:30%">9</button>
+        </div>
+    </div>
+    <div>
+      <h2>See active clients on server here</h2>
+      <ul id="players">
+
+      </ul>
+      <h4>Your name:</h4>
+      <h4>Your active opponent:</h4>
+  </div>
+
+    <form id="form" action="">
+      <input id="input" autocomplete="off" /><button>Send</button>
+    </form>
+
+    
+
+
+    <script>
+      // client.js for websocket interaction
+
+      //event listener for clicks on listed players
+      document.getElementById("players").addEventListener('click', (evt) => {
+
+        if(evt.target.tagName == "LI"){
+          console.log("its a player");
+          if(confirm("You want to play with " + evt.target.textContent + "?")){
+            //player wants to play with clicked user
+            hash = evt.target.value;
+            uid = hash.toString();
+            console.log(hash);
+            msg = { "topic": "startgame", "uid":uid};
+            msg = JSON.stringify(msg);
+            console.log(msg);
+            connection.send(msg);
+          }
+          else{
+            alert("ok then");
+          }
+        }
+        else {
+          console.log("just rubbish");
+        }
+      });
+      const url = 'ws://localhost:8088'
+      const connection = new WebSocket(url);
+
+      connection.onopen = () => {
+        const userData = JSON.stringify(
+          {name:Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5), firebaseId:"1234"}
+          );
+        document.getElementsByTagName("h4")[0].textContent += JSON.parse(userData)["name"];
+        connection.send(userData) 
+
+      }
+
+      connection.onerror = (error) => {
+        console.log(`WebSocket error: ${error}`)
+      }
+
+        var form = document.getElementById("form");
+        var input = document.getElementById("input");
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if(input.value) {
+                connection.send(input.value);
+                input.value = '';
+            }
+        });
+
+        const buttons = document.getElementById('buttons');
+        buttons.addEventListener('click', (event) => {
+            console.log(event.srcElement.innerText);
+            connection.send(event.srcElement.innerText)
+        });
+
+
+        // ALL MESSAGE HANDLING IS HAPPENING HERE
+        connection.onmessage = (msg) => {
+          console.log(document.getElementsByTagName("button")[0].innerText);
+          //removing silly escape \ from Java JSON crap
+          const searchRegExp = /\\/g;
+          const replaceWith = '';
+          const result = msg.data.replace(searchRegExp, replaceWith);
+          console.log(result);
+          var item = document.createElement('li');
+          item.textContent = result;
+          messages.appendChild(item);
+          messages.scrollTo(0,messages.scrollHeight);
+          window.scrollTo(0,document.body.scrollHeight);
+          if(result[0] == "{"){
+            payload = JSON.parse(result);
+            console.log(payload);
+            try {
+              if (payload[0]["Topic"] != undefined && payload[0]["Topic"] == "Playerlist"){
+                console.log("got players");
+                console.log(payload[1]);
+                let list = document.getElementById('players');
+                list.innerHTML = "";
+                payload[1].forEach(element => {
+
+                  const newLiItem = document.createElement("li");
+                  
+                  newLiItem.textContent = element[0];
+                  newLiItem.value = element[1];
+                  console.log (newLiItem);                  
+                  document.getElementById('players').appendChild(newLiItem);
+                });
+              }
+            }
+            catch{
+ 
+            }
+
+            try{    
+                if (payload["Marked"] != undefined){
+                  console.log("trying to mark now");
+                  let markiertesFeld = payload["Marked"];
+                  let playerIcon = "X"
+                  if (payload["Player"] == "Player2Icon"){
+                    playerIcon = "O";
+                  }
+                  document.getElementsByTagName("button")[markiertesFeld-1].innerText = playerIcon;                              
+                }
+              } 
+              catch (error) {
+
+              }
+              try {
+                  console.log("looking for opponent");
+                  if (payload["opponent"] != undefined){
+                    console.log("opponent found");
+                    let opponent = payload["opponent"];
+                    console.log(opponent);
+                    document.getElementsByTagName("h4")[1].textContent += opponent;
+                  }
+                } catch (error) {
+                  console.log("argh");
+              }
+            }            
+          }
+
+    </script>
+
+  </body>
+</html>
