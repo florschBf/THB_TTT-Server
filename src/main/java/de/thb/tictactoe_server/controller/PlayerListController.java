@@ -21,11 +21,16 @@ public class PlayerListController {
 
     @ResponseBody
     @PostMapping("/addPlayer")
-    public String addPlayer(@RequestBody Player player){
-        this.playerListService.addPlayerToList(player);
-        return "User added, thank you.";
+    public Player addPlayer(@RequestBody Player player){
+
+        return this.playerListService.addPlayerToList(player);
         }
 
     @GetMapping("showMe")
     private ArrayList<Player> show(){ return playerListService.getPlayerList();}
+
+    @GetMapping("/list")
+    public final PlayerListService getPlayerListService(){
+        return playerListService;
+    }
 }
