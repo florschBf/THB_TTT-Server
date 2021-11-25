@@ -3,8 +3,6 @@ package de.thb.tictactoe_server.controller;
 import de.thb.tictactoe_server.gameobject.Player;
 import de.thb.tictactoe_server.service.PlayerListService;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 
@@ -15,7 +13,7 @@ import java.util.ArrayList;
 @RestController
 @RequestMapping("/playerList")
 public class PlayerListController {
-    private PlayerListService playerListService;
+    private final PlayerListService playerListService;
 
     public PlayerListController(PlayerListService playerListService){
         this.playerListService = playerListService;
