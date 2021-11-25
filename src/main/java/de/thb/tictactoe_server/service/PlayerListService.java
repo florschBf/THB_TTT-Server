@@ -22,9 +22,16 @@ public class PlayerListService {
         return playerList;
     }
 
-    public void addPlayerToList(Player player){
+    public Player addPlayerToList(Player player){
         this.playerList.add(player);
-        Long newUid = (long) this.playerList.size();
-        player.setUid(newUid);
+        Integer newUid = this.playerList.size();
+        if(player.getConn() != null){
+            player.setUid();
+        }
+        else{
+            player.setUid(newUid);
+        }
+
+        return player;
     }
 }

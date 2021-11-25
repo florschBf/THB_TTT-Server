@@ -6,5 +6,5 @@ package de.thb.tictactoe_server.gameobject;
  */
 public interface GameObject {
     String getName();
-    Long getUid();
+    Integer getUid();
 }
