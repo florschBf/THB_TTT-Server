@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Node Modules ###
+src/webclient/node_modules
