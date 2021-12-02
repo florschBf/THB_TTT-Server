@@ -2,20 +2,49 @@ package de.thb.tictactoe_server.tttsockets;
 
 import de.thb.tictactoe_server.factory.GameObjectFactory;
 import de.thb.tictactoe_server.gameobject.Player;
+import de.thb.tictactoe_server.tttsockets.commandHandlers.*;
 import org.java_websocket.WebSocket;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.io.IOException;
-
 /**
  * Klasse um Nachrichten, die über Websocket empfangen werden, auszuwerten
  */
 public class SocketMessageHandler {
+    private SignUpCmdHandler signUp = new SignUpCmdHandler();
+    private GameSessionCmdHandler sessionCmd = new GameSessionCmdHandler();
+    private MoveCmdHandler moveCmd = new MoveCmdHandler();
 
+    /**
+     * Methode um Client-Anfragen auszuwerten und Anweisungen zurückzugeben
+     * @param message Die erhaltene Nachricht vom Client
+     * @return String aus dem der Server die nächste Aktion ableiten kann
+     * @throws ParseException --> Probleme mit dem Format abfangen, damit nicht noch der ganze Server abrauscht
+     */
     public String msgResult(String message) throws ParseException {
-        switch(message) {
+
+        //Annahme: TTT-Protokoll V 1.0 (Stand 01.12.'21)
+        //Parse entsprechend nach den bekannten Topics und Commands.
+        //Websockets lässt sonst automatisch die Connection fallen
+        JSONObject payload = parseJSONString(message);
+        System.out.println(payload.get("topic").toString());
+        switch(payload.get("topic").toString()) {
+
+            case "signup":
+                System.out.println("signUp topic -> calling SignUpCmdHandler");
+                return this.signUp.handle(payload);
+            case "gameSession":
+                System.out.println("gameSession topic -> calling GameSessionCmdHandler");
+                return this.sessionCmd.handle(payload);
+            case "gameMove":
+                System.out.println("gameMove topic -> calling MoveCmdHandler");
+                return this.moveCmd.handle(payload);
+            default:
+                System.out.println("found no useful message..");
+                return "You said" + payload;
+        }
+ /*       switch(message) {
             case "1":
                 System.out.println("placing a 1");
                 return ("Feld 1 gesetzt");
@@ -62,8 +91,7 @@ public class SocketMessageHandler {
                 catch (ParseException exception){
                     //No JSON, taking it for simple String
                     return ("You said " + message);
-                }
-        }
+                }*/
     }
 
     private JSONObject parseJSONString(String message) throws ParseException{
@@ -73,6 +101,13 @@ public class SocketMessageHandler {
         return payload;
     }
 
+    /**
+     * Utility Methode um das passende Player-GameObject zur SignUp-Nachricht zu instanzieren
+     * @param conn Die dazugehörige Websocket-Verbindung
+     * @param message Der String mit dem sich angemeldet wurde
+     * @return Fertiges Player-GameObject zum Eintragen in Liste etc.
+     * @throws ParseException --> wenn mit dem JSON was schief läuft
+     */
     public Player getPlayerFromMsg(WebSocket conn, String message) throws ParseException {
         JSONObject payload = parseJSONString(message);
         GameObjectFactory playerFac = new GameObjectFactory();
@@ -85,6 +120,12 @@ public class SocketMessageHandler {
         return newPlayer;
     }
 
+    /**
+     * Utility Methode um die PlayerUid aus Nachricht zu extrahieren
+     * @param message Die empfangene Nachricht
+     * @return Gewünschte UID des (Gegen)spielers
+     * @throws ParseException --> malformed JSON?
+     */
     public Integer getPlayerUidFromMessage(String message) throws ParseException{
         try {
             //Assuming proper game request in message

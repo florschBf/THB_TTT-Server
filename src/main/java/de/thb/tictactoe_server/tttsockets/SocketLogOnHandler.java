@@ -26,7 +26,7 @@ public class SocketLogOnHandler {
     }
 
     public void removePlayer(WebSocket conn){
-        //TODO player deletion is wonky... delete on iteration!
+        //TODO player deletion is wonky... delete on iteration! Solved by closing Conn and filtering for closed -> should be solved, TEST
         try{
             System.out.println(conn);
             Player player = this.playerList.stream().findAny().filter(player1 -> (!player1.getConn().isOpen())).orElseThrow();
@@ -43,28 +43,28 @@ public class SocketLogOnHandler {
         System.out.println(this.playerList);
     }
 
+    //TODO seems malformed - rework
     public String returnPlayers(){
         JSONObject list = new JSONObject();
-        JSONObject topic = new JSONObject();
-        topic.put("Topic","Playerlist");
-        list.put(0,topic);
-        list.put(1,playersToJson());
+        list.put("topic","signup");
+        list.put("players","all");
+        Integer i = 0;
+        for (Player player : playerList){
+            if(player.getConn().isOpen()){
+                JSONObject info = new JSONObject();
+                info.put("name", player.getName());
+                info.put("playerUID", player.getUid());
+                list.put(i,info);
+                i++;
+            }
+        }
+        System.out.println(list);
         String payload = list.toJSONString();
+        System.out.println(payload);
         return payload;
     }
 
-    private JSONArray playersToJson(){
-        JSONArray allPlayers = new JSONArray();
-        for (Player player : playerList) {
-            if(player.getConn().isOpen()){
-                JSONObject info = new JSONObject();
-                info.put(0, player.getName());
-                info.put(1, player.getUid());
-                allPlayers.add(info);
-            }
-        }
-        return allPlayers;
-    }
+
 
     public Player getPlayerByConn(WebSocket conn){
         System.out.println("Looking for this connection " + conn);

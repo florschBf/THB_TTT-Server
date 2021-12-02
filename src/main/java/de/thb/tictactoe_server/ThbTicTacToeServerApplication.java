@@ -18,7 +18,7 @@ public class ThbTicTacToeServerApplication {
     public static void main(String[] args) throws InterruptedException {
         SpringApplication.run(ThbTicTacToeServerApplication.class, args);
 
-        String host = "localhost";
+        String host = "192.168.178.52";
         int port = 8088;
         WebSocketServer server = new TicTacToeSocketServer(new InetSocketAddress(host, port));
         server.run();
