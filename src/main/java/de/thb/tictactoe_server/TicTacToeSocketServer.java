@@ -2,8 +2,6 @@ package de.thb.tictactoe_server;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.util.ArrayList;
 
 import de.thb.tictactoe_server.gameobject.Player;
 import de.thb.tictactoe_server.tttsockets.*;
@@ -11,7 +9,6 @@ import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 import org.json.simple.parser.ParseException;
-import org.springframework.context.annotation.Bean;
 
 public class TicTacToeSocketServer extends WebSocketServer {
     private final SocketMessageHandler messageHandler;
@@ -103,9 +100,7 @@ public class TicTacToeSocketServer extends WebSocketServer {
                         conn.send("Dunno what you're sending, play your game.");
                 }
             }
-
         }
-
     }
 
     @Override
