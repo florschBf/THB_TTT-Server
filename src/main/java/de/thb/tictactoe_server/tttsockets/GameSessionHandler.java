@@ -66,18 +66,18 @@ public class GameSessionHandler {
             if (gameboard[feld-1] == 0){
                 gameboard[feld-1] = 1;
                 this.player1Turn = false;
-                conn.send("{ \"Marked\":\""+feld+"\",\"Player\":\"Player1Icon\" }");
-                this.player2.getConn().send("{ \"Marked\":\""+feld+"\",\"Player\":\"Player1Icon\" }");
+                conn.send("{\"topic\":\"gameMove\",\"marked\":\""+feld+"\",\"whoseTurn\":\"opponentsTurn\" }");
+                this.player2.getConn().send("{\"topic\":\"gameMove\",\"marked\":\""+feld+"\",\"whoseTurn\":\"yourTurn\" }");
             }
             else{
-                conn.send("position already taken, bugger off");
+                conn.send("{\"topic\":\"gameMove\",\"whoseTurn\":\"opponentsTurn\"}");
             }
         }
         else if (!player1Turn && !p1){
             if (gameboard[feld-1] == 0){
                 gameboard[feld-1] = 2;
                 this.player1Turn = true;
-                conn.send("{ \"Marked\":\""+feld+"\",\"Player\":\"Player2Icon\" }");
+                conn.send("{\"topic\":\"gameMove\",\"marked\":\""+feld+"\",\"Player\":\"Player2Icon\" }");
                 this.player1.getConn().send("{ \"Marked\":\""+feld+"\",\"Player\":\"Player2Icon\" }");
             }
             else{

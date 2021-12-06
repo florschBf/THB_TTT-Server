@@ -25,7 +25,7 @@ public class SocketLogOnHandler {
         return this.playerList;
     }
 
-    public void removePlayer(WebSocket conn){
+    public boolean removePlayer(WebSocket conn){
         //TODO player deletion is wonky... delete on iteration! Solved by closing Conn and filtering for closed -> should be solved, TEST
         try{
             System.out.println(conn);
@@ -36,15 +36,23 @@ public class SocketLogOnHandler {
             System.out.println("removed " + player + " from PlayerList");
             Player cleanUp = this.playerList.stream().findAny().filter(player1 -> player1.getConn().isClosed()).orElseThrow();
             this.playerList.remove(cleanUp);
+            System.out.println(this.playerList);
+            return true;
         }
         catch (Exception e){
             System.out.println("no player with that socket?");
+            System.out.println(this.playerList);
+            return false;
         }
-        System.out.println(this.playerList);
+
     }
 
-    //TODO seems malformed - rework
+    /**
+     * Method to return the playerList in JSON format for broadcast to all clients
+     * @return
+     */
     public String returnPlayers(){
+        //seems fine new
         JSONObject list = new JSONObject();
         list.put("topic","signup");
         list.put("players","all");
