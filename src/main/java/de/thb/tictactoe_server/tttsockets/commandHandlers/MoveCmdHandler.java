@@ -8,7 +8,7 @@ import java.util.Objects;
 public class MoveCmdHandler implements CmdHandler{
     @Override
     public String handle(JSONObject payload) {
-        if (payload.get("topic").toString() != "gameMove"){
+        if (!Objects.equals(payload.get("topic").toString(), "gameMove")){
             System.out.println("shouldnt be here");
             return "Error";
         }

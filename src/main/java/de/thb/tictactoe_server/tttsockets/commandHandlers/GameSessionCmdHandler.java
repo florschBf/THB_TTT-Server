@@ -2,15 +2,18 @@ package de.thb.tictactoe_server.tttsockets.commandHandlers;
 
 import org.json.simple.JSONObject;
 
+import java.util.Objects;
+
 public class GameSessionCmdHandler implements CmdHandler{
     @Override
     public String handle(JSONObject payload) {
-        if (payload.get("topic").toString() != "gameSession"){
+        if (!Objects.equals(payload.get("topic").toString(), "gameSession")){
             System.out.println("shouldnt be here");
             return "Error";
         }
         else {
             String command = payload.get("command").toString();
+            System.out.println(command);
             switch (command){
                 case "startgame":
                     try{

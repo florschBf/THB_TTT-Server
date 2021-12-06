@@ -131,7 +131,7 @@ public class SocketMessageHandler {
             //Assuming proper game request in message
             JSONObject payload = parseJSONString(message);
             System.out.println(payload);
-            String uid = (String) payload.get("uid");
+            String uid = (String) payload.get("playerId");
             System.out.println("got him here:" + uid);
             Integer player2uid = Integer.parseInt(uid);
             System.out.println(player2uid);
