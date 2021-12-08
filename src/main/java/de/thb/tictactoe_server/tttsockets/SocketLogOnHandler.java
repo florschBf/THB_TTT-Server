@@ -2,7 +2,6 @@ package de.thb.tictactoe_server.tttsockets;
 
 import de.thb.tictactoe_server.gameobject.Player;
 import org.java_websocket.WebSocket;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
@@ -15,6 +14,7 @@ public class SocketLogOnHandler {
     public SocketLogOnHandler(){
 
     }
+
     public void addConnToPlayerList(Player newPlayer){
         this.playerList.add(newPlayer);
         System.out.println("added " + newPlayer + " to PlayerList");

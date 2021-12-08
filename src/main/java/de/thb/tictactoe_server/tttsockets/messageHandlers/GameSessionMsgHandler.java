@@ -1,10 +1,10 @@
-package de.thb.tictactoe_server.tttsockets.commandHandlers;
+package de.thb.tictactoe_server.tttsockets.messageHandlers;
 
 import org.json.simple.JSONObject;
 
 import java.util.Objects;
 
-public class GameSessionCmdHandler implements CmdHandler{
+public class GameSessionMsgHandler implements MsgHandler {
     @Override
     public String handle(JSONObject payload) {
         if (!Objects.equals(payload.get("topic").toString(), "gameSession")){

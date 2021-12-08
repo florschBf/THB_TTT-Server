@@ -2,7 +2,7 @@ package de.thb.tictactoe_server.tttsockets;
 
 import de.thb.tictactoe_server.factory.GameObjectFactory;
 import de.thb.tictactoe_server.gameobject.Player;
-import de.thb.tictactoe_server.tttsockets.commandHandlers.*;
+import de.thb.tictactoe_server.tttsockets.messageHandlers.*;
 import org.java_websocket.WebSocket;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -12,9 +12,9 @@ import org.json.simple.parser.ParseException;
  * Klasse um Nachrichten, die über Websocket empfangen werden, auszuwerten
  */
 public class SocketMessageHandler {
-    private SignUpCmdHandler signUp = new SignUpCmdHandler();
-    private GameSessionCmdHandler sessionCmd = new GameSessionCmdHandler();
-    private MoveCmdHandler moveCmd = new MoveCmdHandler();
+    private SignUpMsgHandler signUp = new SignUpMsgHandler();
+    private GameSessionMsgHandler sessionCmd = new GameSessionMsgHandler();
+    private MoveMsgHandler moveCmd = new MoveMsgHandler();
 
     /**
      * Methode um Client-Anfragen auszuwerten und Anweisungen zurückzugeben
@@ -32,13 +32,13 @@ public class SocketMessageHandler {
         switch(payload.get("topic").toString()) {
 
             case "signup":
-                System.out.println("signUp topic -> calling SignUpCmdHandler");
+                System.out.println("signUp topic -> calling SignUpMsgHandler");
                 return this.signUp.handle(payload);
             case "gameSession":
-                System.out.println("gameSession topic -> calling GameSessionCmdHandler");
+                System.out.println("gameSession topic -> calling GameSessionMsgHandler");
                 return this.sessionCmd.handle(payload);
             case "gameMove":
-                System.out.println("gameMove topic -> calling MoveCmdHandler");
+                System.out.println("gameMove topic -> calling MoveMsgHandler");
                 return this.moveCmd.handle(payload);
             default:
                 System.out.println("found no useful message..");
@@ -112,6 +112,7 @@ public class SocketMessageHandler {
         JSONObject payload = parseJSONString(message);
         GameObjectFactory playerFac = new GameObjectFactory();
         Player newPlayer = (Player) playerFac.getGameObject("Player");
+
         newPlayer.setName((String)payload.get("name"));
         newPlayer.setFirebaseId((String) payload.get("firebaseId"));
         newPlayer.setConn(conn);
