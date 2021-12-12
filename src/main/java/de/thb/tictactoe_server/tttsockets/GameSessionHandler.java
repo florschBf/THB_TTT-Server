@@ -71,6 +71,7 @@ public class GameSessionHandler {
             return false;
         }
         return false;
+
     }
 
     /**
@@ -93,6 +94,12 @@ public class GameSessionHandler {
                 this.player1Turn = false;
                 conn.send("{\"topic\":\"gameMove\",\"marked\":\""+feld+"\",\"whoseTurn\":\"opponentsTurn\" }");
                 this.player2.getConn().send("{\"topic\":\"gameMove\",\"marked\":\""+feld+"\",\"whoseTurn\":\"yourTurn\" }");
+                if(checkGameOver(gameboard)){
+                    //TODO game is over, tell clients
+                }
+                else{
+                    //Spiel geht weiter
+                };
             }
             else{
                 conn.send("{\"topic\":\"gameMove\",\"whoseTurn\":\"opponentsTurn\"}");
@@ -104,6 +111,12 @@ public class GameSessionHandler {
                 this.player1Turn = true;
                 conn.send("{\"topic\":\"gameMove\",\"marked\":\""+feld+"\",\"Player\":\"Player2Icon\" }");
                 this.player1.getConn().send("{ \"topic\":\"gameMove\",\"Marked\":\""+feld+"\",\"Player\":\"Player2Icon\" }");
+                if(checkGameOver(gameboard)){
+                    //TODO game is over, tell clients
+                }
+                else{
+                    //Spiel geht weiter
+                };
             }
             else{
                 conn.send("position already taken, bugger off");
@@ -113,6 +126,11 @@ public class GameSessionHandler {
             conn.send("Not your turn");
         }
     }
+
+    private boolean checkGameOver(Integer[] gameboard){
+        //TODO Spielfeld auf Gewinner prüfen --> Einzelspieler-Logik nutzen/nutzbar machen
+        return false;
+    };
 
     public Player getPlayer1(){
         return player1;
