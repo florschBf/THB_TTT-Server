@@ -90,13 +90,13 @@ public class SocketLogOnHandler {
     }
 
     //TODO think this is broken -> not in use though, need to try
+    //aktuell meist getPlayerByUid -> player.getConn() als Umweg
     public WebSocket getConnByUid(Integer uid){
         System.out.println("Looking for this guy " + uid);
         System.out.println(this.returnPlayers());
         Player player = this.playerList.stream().findAny().filter(p -> (Objects.equals(p.getUid(), uid))).orElseThrow();
         return player.getConn();
     }
-
     public Player getPlayerByUid(Integer uid){
         System.out.println("Looking for this guy " + uid);
         System.out.println(this.returnPlayers());
@@ -110,5 +110,17 @@ public class SocketLogOnHandler {
             }
         }
         return gesuchter;
+    }
+    public String setPlayerAsBusy(Player player){
+        String playerID = player.getUid().toString();
+        System.out.println("Setzte Player " + playerID + " als beschäftigt.");
+        String cmd = "{\"topic\":\"signup\",\"players\":\""+playerID+" is busy\"}";
+        return cmd;
+    }
+    public String setPlayerAsFree(Player player){
+        String playerID = player.getUid().toString();
+        System.out.println("Setzte Player " + playerID + " als frei.");
+        String cmd = "{\"topic\":\"signup\",\"players\":\""+playerID+" is available\"}";
+        return cmd;
     }
 }

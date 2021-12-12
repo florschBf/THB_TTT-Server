@@ -9,6 +9,7 @@ import java.util.Random;
 public class GameSessionHandler {
     private Player player1, player2;
     private Integer[] gameboard = {0,0,0,0,0,0,0,0,0};
+    private WebSocket p1, p2;
     private boolean player1Turn;
     private Integer gameid = null;
 
@@ -18,8 +19,6 @@ public class GameSessionHandler {
      * @param player2 Spieler 2
      */
     public GameSessionHandler(Player player1, Player player2) {
-        System.out.println(player1);
-        System.out.println(player2);
         this.player1 = player1;
         System.out.println(this.player1);
         this.player2 = player2;
@@ -28,24 +27,50 @@ public class GameSessionHandler {
             //TODO catch this case and tell client to fuck off
             System.out.println("well, that's gonna be boring");
         }
+        //Markiere Spieler als in einer Gamesession, damit keine weiteren geöffnet werden können
         this.player1.setInGame(true);
         this.player2.setInGame(true);
+        this.p1 = this.player1.getConn();
+        this.p2 = this.player2.getConn();
         Random rd = new Random();
         this.player1Turn = rd.nextBoolean();
-        System.out.println(this.player1Turn);
+        System.out.println("Is it player1 turn?: " + this.player1Turn);
         this.gameid = player1.getUid() * player2.getUid();
-        System.out.println(this.gameid);
+        System.out.println("This is the gameID: " + this.gameid);
         this.player1.setGameSession(this);
         this.player2.setGameSession(this);
-        this.player1.getConn().send("{\"opponent\":\""+this.player2.getName()+"\"}");
-        this.player2.getConn().send("{\"opponent\":\""+this.player1.getName()+"\"}");
+
+        //sending challenge to player2, telling p1 to wait
+        this.p1.send("{\"topic\":\"gameSession\",\"startgame\":\"hold\"}");
+        this.p2.send("{\"topic\":\"gameSession\",\"startgame\":\"challenged\"}");
     }
 
     /**
-     * Methode zur Initialisierung des Spiels
+     * Methode zur Initialisierung des Spiels nach confirm
      */
-    public void initGame(){
-
+    public Boolean initGame(String message){
+        if (message.equals("gameConfirmed")){
+            //START GAME
+            this.p1.send("{\"topic\":\"gameSession\",\"startgame\":\"confirm\",\"opponent\":\""+this.player2.getName()+"\"}");
+            this.p2.send("{\"topic\":\"gameSession\",\"startgame\":\"confirm\",\"opponent\":\""+this.player1.getName()+"\"}");
+            //Tell Clients who goes first
+            if(player1Turn) {
+                this.p1.send("{\"topic\":\"gameSession\",\"gameState\":\"yourTurn\"}");
+                this.p2.send("{\"topic\":\"gameSession\",\"gameState\":\"opponentsTurn\"}");
+            }
+            else {
+                this.p1.send("{\"topic\":\"gameSession\",\"gameState\":\"opponentsTurn\"}");
+                this.p2.send("{\"topic\":\"gameSession\",\"gameState\":\"yourTurn\"}");
+            }
+            return true;
+        }
+        else if (message.equals("gameDenied")){
+            //TODO CLEAN UP DENIED GAME SESSION
+            this.p1.send("{\"topic\":\"gameSession\",\"startgame\":\"denied\"}");
+            this.p2.send("{\"topic\":\"gameSession\",\"startgame\":\"denied\"}");
+            return false;
+        }
+        return false;
     }
 
     /**
@@ -78,7 +103,7 @@ public class GameSessionHandler {
                 gameboard[feld-1] = 2;
                 this.player1Turn = true;
                 conn.send("{\"topic\":\"gameMove\",\"marked\":\""+feld+"\",\"Player\":\"Player2Icon\" }");
-                this.player1.getConn().send("{ \"Marked\":\""+feld+"\",\"Player\":\"Player2Icon\" }");
+                this.player1.getConn().send("{ \"topic\":\"gameMove\",\"Marked\":\""+feld+"\",\"Player\":\"Player2Icon\" }");
             }
             else{
                 conn.send("position already taken, bugger off");
@@ -88,4 +113,9 @@ public class GameSessionHandler {
             conn.send("Not your turn");
         }
     }
+
+    public Player getPlayer1(){
+        return player1;
+    }
+    public Player getPlayer2(){return player2;}
 }

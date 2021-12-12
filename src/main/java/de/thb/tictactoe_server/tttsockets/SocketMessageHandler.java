@@ -12,12 +12,13 @@ import org.json.simple.parser.ParseException;
  * Klasse um Nachrichten, die über Websocket empfangen werden, auszuwerten
  */
 public class SocketMessageHandler {
-    private SignUpMsgHandler signUp = new SignUpMsgHandler();
-    private GameSessionMsgHandler sessionCmd = new GameSessionMsgHandler();
-    private MoveMsgHandler moveCmd = new MoveMsgHandler();
+    private final SignUpMsgHandler signUpMsg = new SignUpMsgHandler();
+    private final GameSessionMsgHandler sessionMsg = new GameSessionMsgHandler();
+    private final MoveMsgHandler moveMsg = new MoveMsgHandler();
 
     /**
      * Methode um Client-Anfragen auszuwerten und Anweisungen zurückzugeben
+     *
      * @param message Die erhaltene Nachricht vom Client
      * @return String aus dem der Server die nächste Aktion ableiten kann
      * @throws ParseException --> Probleme mit dem Format abfangen, damit nicht noch der ganze Server abrauscht
@@ -29,17 +30,17 @@ public class SocketMessageHandler {
         //Websockets lässt sonst automatisch die Connection fallen
         JSONObject payload = parseJSONString(message);
         System.out.println(payload.get("topic").toString());
-        switch(payload.get("topic").toString()) {
+        switch (payload.get("topic").toString()) {
 
             case "signup":
                 System.out.println("signUp topic -> calling SignUpMsgHandler");
-                return this.signUp.handle(payload);
+                return this.signUpMsg.handle(payload);
             case "gameSession":
                 System.out.println("gameSession topic -> calling GameSessionMsgHandler");
-                return this.sessionCmd.handle(payload);
+                return this.sessionMsg.handle(payload);
             case "gameMove":
                 System.out.println("gameMove topic -> calling MoveMsgHandler");
-                return this.moveCmd.handle(payload);
+                return this.moveMsg.handle(payload);
             default:
                 System.out.println("found no useful message..");
                 return "You said" + payload;
@@ -94,7 +95,7 @@ public class SocketMessageHandler {
                 }*/
     }
 
-    private JSONObject parseJSONString(String message) throws ParseException{
+    private JSONObject parseJSONString(String message) throws ParseException {
         JSONParser parser = new JSONParser();
         Object obj = parser.parse(message);
         JSONObject payload = (JSONObject) obj;
@@ -103,7 +104,8 @@ public class SocketMessageHandler {
 
     /**
      * Utility Methode um das passende Player-GameObject zur SignUp-Nachricht zu instanzieren
-     * @param conn Die dazugehörige Websocket-Verbindung
+     *
+     * @param conn    Die dazugehörige Websocket-Verbindung
      * @param message Der String mit dem sich angemeldet wurde
      * @return Fertiges Player-GameObject zum Eintragen in Liste etc.
      * @throws ParseException --> wenn mit dem JSON was schief läuft
@@ -113,7 +115,7 @@ public class SocketMessageHandler {
         GameObjectFactory playerFac = new GameObjectFactory();
         Player newPlayer = (Player) playerFac.getGameObject("Player");
 
-        newPlayer.setName((String)payload.get("name"));
+        newPlayer.setName((String) payload.get("name"));
         newPlayer.setFirebaseId((String) payload.get("firebaseId"));
         newPlayer.setConn(conn);
         newPlayer.setUid();
@@ -123,11 +125,12 @@ public class SocketMessageHandler {
 
     /**
      * Utility Methode um die PlayerUid aus Nachricht zu extrahieren
+     *
      * @param message Die empfangene Nachricht
      * @return Gewünschte UID des (Gegen)spielers
      * @throws ParseException --> malformed JSON?
      */
-    public Integer getPlayerUidFromMessage(String message) throws ParseException{
+    public Integer getPlayerUidFromMessage(String message) throws ParseException {
         try {
             //Assuming proper game request in message
             JSONObject payload = parseJSONString(message);
@@ -137,12 +140,22 @@ public class SocketMessageHandler {
             Integer player2uid = Integer.parseInt(uid);
             System.out.println(player2uid);
             return player2uid;
-        }
-        catch (ParseException e){
+        } catch (ParseException e) {
             System.out.println(e);
             return 0;
         }
     }
 
-
+    public String getStartGameReply(String message) throws ParseException {
+        JSONObject payload = parseJSONString(message);
+        if (payload.containsKey("answer")) {
+            if (payload.get("answer").equals("confirm")) {
+                return "gameConfirmed";
+            } else {
+                return "gameDenied";
+            }
+        }
+        System.out.println("Error, not a proper game-challenge answer");
+        return "Error, not a proper game-challenge answer";
+    }
 }
