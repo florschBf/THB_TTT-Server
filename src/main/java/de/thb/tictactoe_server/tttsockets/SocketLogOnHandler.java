@@ -25,18 +25,22 @@ public class SocketLogOnHandler {
         return this.playerList;
     }
 
+    /**
+     * Methode um Spieler aus der Liste zu entfernen
+     * @param conn das Websocket Objekt, das zum Player gehört, der entfernt wird
+     * @return boolean true, wenn alles geklappt hat, false bei exception (duh)
+     */
     public boolean removePlayer(WebSocket conn){
-        //TODO player deletion is wonky... delete on iteration! Solved by closing Conn and filtering for closed -> should be solved, TEST
+        //TODO player deletion is wonky... delete on list iteration not working! Solved by closing Conn and filtering for closed -> NOT solved, TEST
+        //currently does not delete on socket but removes closed connections from the list -> still needs fixing? Is workable though, updates the list properly
+        //conn.close() not working
         try{
             System.out.println(conn);
-            Player player = this.playerList.stream().findAny().filter(player1 -> (!player1.getConn().isOpen())).orElseThrow();
+            Player player = getPlayerByConn(conn);
             System.out.println("Player found with Socket: " + player.getConn() + "\n That's him: " + player);
             this.playerList.remove(player);
             conn.close();
             System.out.println("removed " + player + " from PlayerList");
-            Player cleanUp = this.playerList.stream().findAny().filter(player1 -> player1.getConn().isClosed()).orElseThrow();
-            this.playerList.remove(cleanUp);
-            System.out.println(this.playerList);
             return true;
         }
         catch (Exception e){
@@ -49,7 +53,7 @@ public class SocketLogOnHandler {
 
     /**
      * Method to return the playerList in JSON format for broadcast to all clients
-     * @return
+     * @return String der Spielerliste mit "topic":"signup", "players":"all" und Spielerobjekten, TTT-Protokoll V1.1
      */
     public String returnPlayers(){
         //seems fine new
@@ -73,7 +77,11 @@ public class SocketLogOnHandler {
     }
 
 
-
+    /**
+     * Methode um Player-Objekt anhand des Websockets zu finden
+     * @param conn das Websocket Objekt, das zum Player gehört
+     * @return Player der gesuchte Spieler
+     */
     public Player getPlayerByConn(WebSocket conn){
         System.out.println("Looking for this connection " + conn);
         System.out.println(this.returnPlayers());
@@ -90,13 +98,20 @@ public class SocketLogOnHandler {
     }
 
     //TODO think this is broken -> not in use though, need to try
-    //aktuell meist getPlayerByUid -> player.getConn() als Umweg
+    //aktuell meist getPlayerByUid -> player.getConn() als Umweg - ist im Endeffekt, was hier auch gemacht wird
+    //tendenziell einfach löschen
     public WebSocket getConnByUid(Integer uid){
         System.out.println("Looking for this guy " + uid);
         System.out.println(this.returnPlayers());
         Player player = this.playerList.stream().findAny().filter(p -> (Objects.equals(p.getUid(), uid))).orElseThrow();
         return player.getConn();
     }
+
+    /**
+     * Methode um ein Player-Objekt anhand der UID zu finden
+     * @param uid des gewünschten Player-Objekts
+     * @return Player aus der playerList
+     */
     public Player getPlayerByUid(Integer uid){
         System.out.println("Looking for this guy " + uid);
         System.out.println(this.returnPlayers());
@@ -111,12 +126,24 @@ public class SocketLogOnHandler {
         }
         return gesuchter;
     }
+
+    /**
+     * Methode um Player als beschäftigt zu markieren um weitere Spieleanfragen zu blocken
+     * @param player der gewünschte Spieler aus der Liste
+     * @return String cmd zum Broadcast an alle in der Spielerliste, damit der Spieler dort auch als beschäftigt markiert werden kann.
+     */
     public String setPlayerAsBusy(Player player){
         String playerID = player.getUid().toString();
         System.out.println("Setzte Player " + playerID + " als beschäftigt.");
         String cmd = "{\"topic\":\"signup\",\"players\":\""+playerID+" is busy\"}";
         return cmd;
     }
+
+    /**
+     * Methode um Spieler in der Liste wieder zum Spielen freizugeben
+     * @param player der gewünschte Spieler aus der Liste
+     * @return String cmd zum Broadcast an alle in der Spielerliste, damit der Spieler dort auch wieder als frei markiert werden kann.
+     */
     public String setPlayerAsFree(Player player){
         String playerID = player.getUid().toString();
         System.out.println("Setzte Player " + playerID + " als frei.");

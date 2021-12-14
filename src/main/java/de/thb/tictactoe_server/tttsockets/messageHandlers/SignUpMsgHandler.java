@@ -12,21 +12,25 @@ public class SignUpMsgHandler implements MsgHandler {
             return "Error";
         }
         else {
-            System.out.println("decoding signUp command");
-            try {
-                if (payload.get("register").toString().equals("player")){
-                    return "add player called";
-                }
-                else if (payload.get("register").toString().equals("logoff")){
-                    return "delete player called";
-                }
-                else { return "no valid register command found";}
-            } catch (Exception e){
-                //Wasn't register, must be a get for the playerList
-                if (payload.get("get").toString().equals("players")){
-                    return "playerList called";
-                }
-                else { return "no valid get command found";}
+            System.out.println("decoding signup command");
+            String cmd = payload.get("command").toString();
+            switch (cmd){
+                case "register":
+                    if (payload.get("player") != null){
+                        return "add player called";
+                    }
+                    else { return "Error, not a valid register command"; }
+                case "get":
+                    if (Objects.equals(payload.get("players").toString(), "all")){
+                        return "playerList called";
+                    }
+                    else { return "Error, not a valid get command"; }
+                case "logoff":
+                    if (Objects.equals(payload.get("player").toString(), "this")){
+                        return "delete player called";
+                    }
+                default:
+                    return "Error, not a valid signup command";
             }
 
         }

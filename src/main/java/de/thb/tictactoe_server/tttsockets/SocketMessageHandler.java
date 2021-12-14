@@ -115,7 +115,7 @@ public class SocketMessageHandler {
         GameObjectFactory playerFac = new GameObjectFactory();
         Player newPlayer = (Player) playerFac.getGameObject("Player");
 
-        newPlayer.setName((String) payload.get("name"));
+        newPlayer.setName((String) payload.get("player"));
         newPlayer.setFirebaseId((String) payload.get("firebaseId"));
         newPlayer.setConn(conn);
         newPlayer.setUid();
