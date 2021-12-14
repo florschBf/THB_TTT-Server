@@ -46,7 +46,9 @@ public class GameSessionHandler {
     }
 
     /**
-     * Methode zur Initialisierung des Spiels nach confirm
+     * Methode zur Initialisierung des Spiels nach confirm oder Abbruch nach deny
+     * @param message Ausgewertete Antwort des angefragten Spielers
+     * @return true = Spiel zustande gekommen, warte auf Zug | false = Spiel abgelehnt, Spielsession rückabwickeln
      */
     public Boolean initGame(String message){
         if (message.equals("gameConfirmed")){
@@ -62,16 +64,20 @@ public class GameSessionHandler {
                 this.p1.send("{\"topic\":\"gameSession\",\"gameState\":\"opponentsTurn\"}");
                 this.p2.send("{\"topic\":\"gameSession\",\"gameState\":\"yourTurn\"}");
             }
+            //Warte auf Spielerzüge
             return true;
         }
         else if (message.equals("gameDenied")){
-            //TODO CLEAN UP DENIED GAME SESSION
+            //Think that is all that needs cleaning
             this.p1.send("{\"topic\":\"gameSession\",\"startgame\":\"denied\"}");
             this.p2.send("{\"topic\":\"gameSession\",\"startgame\":\"denied\"}");
+            this.player1.setInGame(false);
+            this.player2.setInGame(false);
+            this.player1.setGameSession(null);
+            this.player2.setGameSession(null);
             return false;
         }
         return false;
-
     }
 
     /**
@@ -83,17 +89,17 @@ public class GameSessionHandler {
      * @param feld gewähltes Feld von links oben 1 bis rechts unten 9
      */
     public void move(WebSocket conn, Integer feld) {
-        //Find out who sent the move and whose turn it is
-        Boolean p1 = false;
-        if (player1.getConn().equals(conn)){
-            p1 = true;
-        }
+        //Find out who sent the move
+        boolean p1 = this.p1.equals(conn);
+
+        //If sender and player1Turn align, mark gameboard, confirm move
+        //else deny move, repeat opponentsTurn
         if (player1Turn && p1){
             if (gameboard[feld-1] == 0){
                 gameboard[feld-1] = 1;
                 this.player1Turn = false;
                 conn.send("{\"topic\":\"gameMove\",\"marked\":\""+feld+"\",\"whoseTurn\":\"opponentsTurn\" }");
-                this.player2.getConn().send("{\"topic\":\"gameMove\",\"marked\":\""+feld+"\",\"whoseTurn\":\"yourTurn\" }");
+                this.p2.send("{\"topic\":\"gameMove\",\"marked\":\""+feld+"\",\"whoseTurn\":\"yourTurn\" }");
                 if(checkGameOver(gameboard)){
                     //TODO game is over, tell clients
                 }
@@ -119,7 +125,7 @@ public class GameSessionHandler {
                 };
             }
             else{
-                conn.send("position already taken, bugger off");
+                conn.send("{\"topic\":\"gameMove\",\"marked\":\""+feld+"\",\"Player\":\"Player2Icon\" }");
             }
         }
         else{

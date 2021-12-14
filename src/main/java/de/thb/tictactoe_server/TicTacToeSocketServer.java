@@ -30,6 +30,8 @@ public class TicTacToeSocketServer extends WebSocketServer {
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
         System.out.println("closed " + conn.getRemoteSocketAddress() + " with exit code " + code + " additional info: " + reason);
+        //TODO handle disconnects on Players who are in a connection.
+        //e.g. check whether player is in game and if he is, get his gamesession to properly inform player2 and quit the thing
         this.logOnHandler.removePlayer(conn);
         broadcast(logOnHandler.returnPlayers());
     }
@@ -37,6 +39,7 @@ public class TicTacToeSocketServer extends WebSocketServer {
     @Override
     public void onMessage(WebSocket conn, String message) {
         String handledMessage = null;
+
         try {
             handledMessage = messageHandler.msgResult(message);
         } catch (ParseException e) {
@@ -93,92 +96,63 @@ public class TicTacToeSocketServer extends WebSocketServer {
                 }
                 break;
             case ("game request answer"):
-                //suche passende Gamesession über den conn Websocket und rufe dort "initGame" mit der message auf
+                //suche passende Gamesession und rufe dort "initGame" mit der message auf
                 try {
-                    Player p1 = logOnHandler.getPlayerByConn(conn);
-                    Player p2 = p1.getGameSession().getPlayer2();
-                    if(logOnHandler.getPlayerByConn(conn).getGameSession().initGame(messageHandler.getStartGameReply(message))){
-                        //Game started successfully, dont have to do anything
-                        break;
+                    //IMPORTANT: Get players here before the gamesession is dropped - need them for potential broadcast as free
+                    //Game request answers are ALWAYS from player2 in the gamesession, thus we get them like this:
+                    Player p2 = logOnHandler.getPlayerByConn(conn); //player2 send the answer
+                    Player p1 = p2.getGameSession().getPlayer1(); //getting the original request origin player from the session
+                    if(p2.getGameSession().initGame(messageHandler.getStartGameReply(message))){
+                        //Game started successfully, dont have to do anything, don't need the break either.
                     }
                     else {
                         //Game was denied or failed, Gamesession returned false or nothing
-                        //Spieler müssen wieder freigegeben werden
+                        //Spieler müssen wieder freigegeben werden - rest of cleanup in GameSessionHandler initGame method
                         broadcast(logOnHandler.setPlayerAsFree(p1));
                         broadcast(logOnHandler.setPlayerAsFree(p2));
                     }
                 } catch (ParseException e) {
+                    System.out.println("Error on game request answer - something wrong with the format.");
                     e.printStackTrace();
                 }
 
                 //TOPIC GAMEMOVE RESPONSES
+            case("Feld 1 gesetzt"):
+                // Tell gamesession it's a player move to validate and execute
+                //GameSessionHandler also informs clients/players
+                //TODO gamesession lookup in every case is awkward but session on Player cannot be guaranteed @start of method
+                //--> session creation @startgame is possible, shouldn't interfere there
+                logOnHandler.getPlayerByConn(conn).getGameSession().move(conn,0);
+                break;
+            case("Feld 2 gesetzt"):
+                logOnHandler.getPlayerByConn(conn).getGameSession().move(conn,1);
+                break;
+            case("Feld 3 gesetzt"):
+                logOnHandler.getPlayerByConn(conn).getGameSession().move(conn,2);
+                break;
+            case("Feld 4 gesetzt"):
+                logOnHandler.getPlayerByConn(conn).getGameSession().move(conn,3);
+                break;
+            case("Feld 5 gesetzt"):
+                logOnHandler.getPlayerByConn(conn).getGameSession().move(conn,4);
+                break;
+            case("Feld 6 gesetzt"):
+                logOnHandler.getPlayerByConn(conn).getGameSession().move(conn,5);
+                break;
+            case("Feld 7 gesetzt"):
+                logOnHandler.getPlayerByConn(conn).getGameSession().move(conn,6);
+                break;
+            case("Feld 8 gesetzt"):
+                logOnHandler.getPlayerByConn(conn).getGameSession().move(conn,7);
+                break;
+            case("Feld 9 gesetzt"):
+                logOnHandler.getPlayerByConn(conn).getGameSession().move(conn,8);
+                break;
 
             default:
                 System.out.println("didn't understand the message");
-                conn.send("Error, malformed message, stick to protocol");
+                conn.send("Error, malformed message, stick to protocol. Your message was: " + message);
         }
-/*        if(handledMessage.equals("add player called")){
-            try {
-                addPlayerToList(this.messageHandler.getPlayerFromMsg(conn, message));
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-            broadcast(logOnHandler.returnPlayers());
-        }
-        else {
-            Player player1 = logOnHandler.getPlayerByConn(conn);
-            if(!player1.getInGame()){
-                switch(handledMessage){
-                    case("startgame"):
-                        Player player2 = null;
-                        try {
-                            player2 = logOnHandler.getPlayerByUid(messageHandler.getPlayerUidFromMessage(message));
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-                        GameSessionHandler session = new GameSessionHandler(player1, player2);
-                        //markiere Spieler als beschäftigt in der Liste der Clients
-                        broadcast("{\"topic\":\"signup\",\"players\":"+player1.getUid().toString()+" is busy\"}");
-                        broadcast("{\"topic\":\"signup\",\"players\":"+player2.getUid().toString()+" is busy\"}");
-                        break;
-                    default: conn.send(handledMessage);
-                }
-            }
-            else if (player1.getInGame()){
-                GameSessionHandler session = player1.getGameSession();
-                switch(handledMessage){
-                    case("Feld 1 gesetzt"):
-                        session.move(conn,1);
-                        break;
-                    case("Feld 2 gesetzt"):
-                        session.move(conn,2);
-                        break;
-                    case("Feld 3 gesetzt"):
-                        session.move(conn,3);
-                        break;
-                    case("Feld 4 gesetzt"):
-                        session.move(conn,4);
-                        break;
-                    case("Feld 5 gesetzt"):
-                        session.move(conn,5);
-                        break;
-                    case("Feld 6 gesetzt"):
-                        session.move(conn,6);
-                        break;
-                    case("Feld 7 gesetzt"):
-                        session.move(conn,7);
-                        break;
-                    case("Feld 8 gesetzt"):
-                        session.move(conn,8);
-                        break;
-                    case("Feld 9 gesetzt"):
-                        session.move(conn,9);
-                        break;
-                    default:
-                        conn.send("Dunno what you're sending, play your game.");
-                }
-            }
-        }*/
     }
 
     @Override

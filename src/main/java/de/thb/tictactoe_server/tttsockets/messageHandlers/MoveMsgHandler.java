@@ -22,7 +22,7 @@ public class MoveMsgHandler implements MsgHandler {
                             System.out.println("Proper field found");
                             return "Feld " + field + " gesetzt";
                         }
-                        else { return "not a proper field request";}
+                        else { return "Error, that field does not exist on our gameboard";}
                     } catch (Exception e){
                         return "Error, not a proper mark request";
                     }

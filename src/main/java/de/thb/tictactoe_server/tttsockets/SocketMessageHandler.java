@@ -95,6 +95,12 @@ public class SocketMessageHandler {
                 }*/
     }
 
+    /**
+     * JSON parser methode
+     * @param message Nachricht im JSON Format
+     * @return JSONObject aus Nachricht
+     * @throws ParseException --> vermutlich JSON fehlerhaft
+     */
     private JSONObject parseJSONString(String message) throws ParseException {
         JSONParser parser = new JSONParser();
         Object obj = parser.parse(message);
@@ -146,6 +152,12 @@ public class SocketMessageHandler {
         }
     }
 
+    /**
+     * Methode um Antworten auf Spieleanfragen zu verarbeiten
+     * @param message String mit Antwort auf Spielanfrage nach TTT-Protokoll
+     * @return String gameConfirmed|gameDenied|Error
+     * @throws ParseException Wahrscheinlich Probleme mit dem JSON-Format
+     */
     public String getStartGameReply(String message) throws ParseException {
         JSONObject payload = parseJSONString(message);
         if (payload.containsKey("answer")) {
