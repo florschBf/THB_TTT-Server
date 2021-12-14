@@ -40,9 +40,16 @@ public class TicTacToeSocketServer extends WebSocketServer {
         try {
             handledMessage = messageHandler.msgResult(message);
         } catch (ParseException e) {
+            System.out.println("Error processing the incoming message. Pretty fundamental... should not have happened ;-)");
             e.printStackTrace();
         }
         switch (handledMessage){
+            //TODO for TTT-Protokoll 1.1 implement startgame:deny, Session Clean Up on END or DENY
+            //TODO command:quitgame,state:initiate // state:confirm
+            //TODO revisit topic:gameMove, command:mark, field:8..
+            //think that's all, that is left...
+
+                // TOPIC SIGNUP RESPONSES
             case ("add player called"):
                 try {
                     addPlayerToList(this.messageHandler.getPlayerFromMsg(conn, message));
@@ -51,6 +58,21 @@ public class TicTacToeSocketServer extends WebSocketServer {
                 }
                 broadcast(logOnHandler.returnPlayers());
                 break;
+            case ("delete player called"):
+                try {
+                    System.out.println("removing player from list");
+                    logOnHandler.removePlayer(conn);
+                }
+                catch (Exception e){
+                    System.out.println("couldnt remove player?");
+                    e.printStackTrace();
+                }
+                broadcast(logOnHandler.returnPlayers());
+                break;
+            case ("playerList called"):
+                broadcast(logOnHandler.returnPlayers());
+
+                // TOPIC GAMESESSION RESPONSES
             case ("startgame"):
                 Player player1 = logOnHandler.getPlayerByConn(conn);
                 if(player1.getInGame()){
@@ -88,6 +110,8 @@ public class TicTacToeSocketServer extends WebSocketServer {
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
+
+                //TOPIC GAMEMOVE RESPONSES
 
             default:
                 System.out.println("didn't understand the message");
