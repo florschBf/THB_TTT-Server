@@ -35,6 +35,7 @@ public class Player implements GameObject{
     }
 
     public GameSessionHandler getGameSession(){
+        System.out.println("Finding gameSession: " + this.gameSession);
         return this.gameSession;
     }
 
