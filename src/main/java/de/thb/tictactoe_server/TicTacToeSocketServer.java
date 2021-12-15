@@ -13,11 +13,13 @@ import org.json.simple.parser.ParseException;
 public class TicTacToeSocketServer extends WebSocketServer {
     private final SocketMessageHandler messageHandler;
     private final SocketLogOnHandler logOnHandler;
+    private final RandomQueueHandler randomQueue;
 
     public TicTacToeSocketServer(InetSocketAddress address) {
         super(address);
         this.messageHandler = new SocketMessageHandler();
         this.logOnHandler = new SocketLogOnHandler();
+        this.randomQueue = new RandomQueueHandler();
     }
 
     @Override
@@ -30,7 +32,7 @@ public class TicTacToeSocketServer extends WebSocketServer {
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
         System.out.println("closed " + conn.getRemoteSocketAddress() + " with exit code " + code + " additional info: " + reason);
-        //TODO handle disconnects on Players who are in a connection.
+        //TODO handle disconnects on Players who are in a gamesession.
         //e.g. check whether player is in game and if he is, get his gamesession to properly inform player2 and quit the thing
         this.logOnHandler.removePlayer(conn);
         broadcast(logOnHandler.returnPlayers());
@@ -95,6 +97,13 @@ public class TicTacToeSocketServer extends WebSocketServer {
                     broadcast(logOnHandler.setPlayerAsBusy(player2));
                 }
                 break;
+            case ("startRandom"):
+                randomQueue.addPlayerToQueue(logOnHandler.getPlayerByConn(conn));
+                //this automatically triggers games for the client in RandomQueueHandler if someone else wants to play
+                break;
+            case ("stopRandom"):
+                randomQueue.removePlayerFromQueue(logOnHandler.getPlayerByConn(conn));
+                break;
             case ("game request answer"):
                 //suche passende Gamesession und rufe dort "initGame" mit der message auf
                 try {
@@ -117,35 +126,35 @@ public class TicTacToeSocketServer extends WebSocketServer {
                 }
 
                 //TOPIC GAMEMOVE RESPONSES
-            case("Feld 1 gesetzt"):
+            case("Feld 0 gesetzt"):
                 // Tell gamesession it's a player move to validate and execute
                 //GameSessionHandler also informs clients/players
                 //TODO gamesession lookup in every case is awkward but session on Player cannot be guaranteed @start of method
                 //--> session creation @startgame is possible, shouldn't interfere there
                 logOnHandler.getPlayerByConn(conn).getGameSession().move(conn,0);
                 break;
-            case("Feld 2 gesetzt"):
+            case("Feld 1 gesetzt"):
                 logOnHandler.getPlayerByConn(conn).getGameSession().move(conn,1);
                 break;
-            case("Feld 3 gesetzt"):
+            case("Feld 2 gesetzt"):
                 logOnHandler.getPlayerByConn(conn).getGameSession().move(conn,2);
                 break;
-            case("Feld 4 gesetzt"):
+            case("Feld 3 gesetzt"):
                 logOnHandler.getPlayerByConn(conn).getGameSession().move(conn,3);
                 break;
-            case("Feld 5 gesetzt"):
+            case("Feld 4 gesetzt"):
                 logOnHandler.getPlayerByConn(conn).getGameSession().move(conn,4);
                 break;
-            case("Feld 6 gesetzt"):
+            case("Feld 5 gesetzt"):
                 logOnHandler.getPlayerByConn(conn).getGameSession().move(conn,5);
                 break;
-            case("Feld 7 gesetzt"):
+            case("Feld 6 gesetzt"):
                 logOnHandler.getPlayerByConn(conn).getGameSession().move(conn,6);
                 break;
-            case("Feld 8 gesetzt"):
+            case("Feld 7 gesetzt"):
                 logOnHandler.getPlayerByConn(conn).getGameSession().move(conn,7);
                 break;
-            case("Feld 9 gesetzt"):
+            case("Feld 8 gesetzt"):
                 logOnHandler.getPlayerByConn(conn).getGameSession().move(conn,8);
                 break;
 

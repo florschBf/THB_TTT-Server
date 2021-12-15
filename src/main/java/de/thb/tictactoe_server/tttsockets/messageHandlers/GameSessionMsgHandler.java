@@ -30,6 +30,10 @@ public class GameSessionMsgHandler implements MsgHandler {
                         }
                         else {return "Error, no playerID for startgame";}
                     }
+                case "startRandom":
+                    return "startRandom";
+                case "stopRandom":
+                    return "stopRandom";
                 case "gameState":
                     try {
                         String info = payload.get("info").toString();

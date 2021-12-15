@@ -20,7 +20,9 @@ public class MoveMsgHandler implements MsgHandler {
                         if (Objects.equals(field, "0") || Objects.equals(field, "1") || Objects.equals(field, "2") || Objects.equals(field, "3") || Objects.equals(field, "4")
                                 || Objects.equals(field, "5") || Objects.equals(field, "6") || Objects.equals(field, "7") || Objects.equals(field, "8")){
                             System.out.println("Proper field found");
-                            return "Feld " + field + " gesetzt";
+                            String result = "Feld " + field + " gesetzt";
+                            System.out.println(result);
+                            return result;
                         }
                         else { return "Error, that field does not exist on our gameboard";}
                     } catch (Exception e){
