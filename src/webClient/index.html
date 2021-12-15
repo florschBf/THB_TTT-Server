@@ -76,16 +76,16 @@
           console.log("just rubbish");
         }
       });
-      const url = 'ws://localhost:8088'
+      const url = 'ws://192.168.178.52:8088'
       const connection = new WebSocket(url);
 
       connection.onopen = () => {
         const userData = JSON.stringify(
-          {name:Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5), firebaseId:"1234"}
+          {topic:"signup",register:"player",name:Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5), firebaseId:"1234"}
           );
+        console.log(userData);
         document.getElementsByTagName("h4")[0].textContent += JSON.parse(userData)["name"];
         connection.send(userData) 
-
       }
 
       connection.onerror = (error) => {

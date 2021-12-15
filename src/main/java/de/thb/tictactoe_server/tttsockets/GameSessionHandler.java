@@ -9,6 +9,7 @@ import java.util.Random;
 public class GameSessionHandler {
     private Player player1, player2;
     private Integer[] gameboard = {0,0,0,0,0,0,0,0,0};
+    private WebSocket p1, p2;
     private boolean player1Turn;
     private Integer gameid = null;
 
@@ -18,8 +19,6 @@ public class GameSessionHandler {
      * @param player2 Spieler 2
      */
     public GameSessionHandler(Player player1, Player player2) {
-        System.out.println(player1);
-        System.out.println(player2);
         this.player1 = player1;
         System.out.println(this.player1);
         this.player2 = player2;
@@ -28,24 +27,65 @@ public class GameSessionHandler {
             //TODO catch this case and tell client to fuck off
             System.out.println("well, that's gonna be boring");
         }
+        //Markiere Spieler als in einer Gamesession, damit keine weiteren geöffnet werden können
         this.player1.setInGame(true);
         this.player2.setInGame(true);
+        this.p1 = this.player1.getConn();
+        this.p2 = this.player2.getConn();
         Random rd = new Random();
         this.player1Turn = rd.nextBoolean();
-        System.out.println(this.player1Turn);
+        System.out.println("Is it player1 turn?: " + this.player1Turn);
         this.gameid = player1.getUid() * player2.getUid();
-        System.out.println(this.gameid);
+        System.out.println("This is the gameID: " + this.gameid);
         this.player1.setGameSession(this);
         this.player2.setGameSession(this);
-        this.player1.getConn().send("{\"opponent\":\""+this.player2.getName()+"\"}");
-        this.player2.getConn().send("{\"opponent\":\""+this.player1.getName()+"\"}");
+
+        //sending challenge to player2, telling p1 to wait
+        this.p1.send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"hold\"}");
+        this.p2.send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"challenged\"}");
     }
 
     /**
-     * Methode zur Initialisierung des Spiels
+     * Methode zur Initialisierung des Spiels nach confirm oder Abbruch nach deny
+     * @param message Ausgewertete Antwort des angefragten Spielers
+     * @return true = Spiel zustande gekommen, warte auf Zug | false = Spiel abgelehnt, Spielsession rückabwickeln
      */
-    public void initGame(){
-
+    public Boolean initGame(String message){
+        if (message.equals("gameConfirmed")){
+            //START GAME
+            this.p1.send("{\"topic\":\"gameSession\"," +
+                    "\"command\":\"startgame\"," +
+                    "\"state\":\"confirmed\"," +
+                    "\"opponent\":\""+this.player2.getName()+"\"," +
+                    "\"opponentIcon\":\"none\"}");
+            this.p2.send("{\"topic\":\"gameSession\"," +
+                    "\"command\":\"startgame\"," +
+                    "\"state\":\"confirmed\"," +
+                    "\"opponent\":\""+this.player1.getName()+"\"," +
+                    "\"opponentIcon\":\"none\"}");
+            //Tell Clients who goes first
+            if(player1Turn) {
+                this.p1.send("{\"topic\":\"gameSession\",\"command\":\"gameState\",\"info\":\"yourTurn\"}");
+                this.p2.send("{\"topic\":\"gameSession\",\"command\":\"gameState\",\"info\":\"opponentsTurn\"}");
+            }
+            else {
+                this.p1.send("{\"topic\":\"gameSession\",\"command\":\"gameState\",\"info\":\"opponentsTurn\"}");
+                this.p2.send("{\"topic\":\"gameSession\",\"command\":\"gameState\",\"info\":\"yourTurn\"}");
+            }
+            //Warte auf Spielerzüge
+            return true;
+        }
+        else if (message.equals("gameDenied")){
+            //Think that is all that needs cleaning
+            this.p1.send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"denied\"}");
+            this.p2.send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"denied\"}");
+            this.player1.setInGame(false);
+            this.player2.setInGame(false);
+            this.player1.setGameSession(null);
+            this.player2.setGameSession(null);
+            return false;
+        }
+        return false;
     }
 
     /**
@@ -56,36 +96,67 @@ public class GameSessionHandler {
      * @param conn Verbindung des eingebenden Spielers
      * @param feld gewähltes Feld von links oben 1 bis rechts unten 9
      */
-    public void move(WebSocket conn, Integer feld) {
-        //Find out who sent the move and whose turn it is
-        Boolean p1 = false;
-        if (player1.getConn().equals(conn)){
-            p1 = true;
-        }
-        if (player1Turn && p1){
-            if (gameboard[feld-1] == 0){
-                gameboard[feld-1] = 1;
+    public void move(WebSocket conn, int feld) {
+        System.out.println("gameSession move called");
+        //Find out who sent the move
+        boolean isSenderP1 = this.p1.equals(conn);
+
+        //If sender and player1Turn align, mark gameboard, confirm move
+        //else deny move, repeat opponentsTurn
+        if (player1Turn && isSenderP1){
+            if (gameboard[feld] == 0){
+                gameboard[feld] = 1;
                 this.player1Turn = false;
-                conn.send("{ \"Marked\":\""+feld+"\",\"Player\":\"Player1Icon\" }");
-                this.player2.getConn().send("{ \"Marked\":\""+feld+"\",\"Player\":\"Player1Icon\" }");
+                System.out.println("sending move to players here now");
+                conn.send("{\"topic\":\"gameMove\",\"command\":\"mark\",\"marked\":\""+feld+"\",\"player\":\"you\"}");
+                this.p2.send("{\"topic\":\"gameMove\",\"command\":\"mark\",\"marked\":\""+feld+"\",\"player\":\"opponent\"}");
+                if(checkGameOver(gameboard)){
+                    //TODO game is over, tell clients
+                }
+                else{
+                    //Spiel geht weiter
+                };
             }
             else{
-                conn.send("position already taken, bugger off");
+                //Feld schon gesetzt, geht nicht // TODO implement a way to get the board state as a String or rather JSON Object that makes sense to the client
+                System.out.println("invalid move");
+                conn.send("{\"topic\":\"gameMove\",\"command\":\"mark\",\"error\":\"fieldTaken\",\"boardState\":\""+gameboard.toString()+"\"}");
             }
         }
-        else if (!player1Turn && !p1){
-            if (gameboard[feld-1] == 0){
-                gameboard[feld-1] = 2;
+        else if (!player1Turn && !isSenderP1){
+            if (gameboard[feld] == 0){
+                gameboard[feld] = 2;
                 this.player1Turn = true;
-                conn.send("{ \"Marked\":\""+feld+"\",\"Player\":\"Player2Icon\" }");
-                this.player1.getConn().send("{ \"Marked\":\""+feld+"\",\"Player\":\"Player2Icon\" }");
+                System.out.println("sending move to players here now");
+                conn.send("{\"topic\":\"gameMove\",\"command\":\"mark\",\"marked\":\""+feld+"\",\"player\":\"you\" }");
+                this.p1.send("{ \"topic\":\"gameMove\",\"command\":\"mark\",\"marked\":\""+feld+"\",\"player\":\"opponent\"}");
+                if(checkGameOver(gameboard)){
+                    //TODO game is over, tell clients
+                }
+                else{
+                    //Spiel geht weiter
+                };
             }
             else{
-                conn.send("position already taken, bugger off");
+                //Feld schon gesetzt, geht nicht // TODO implement a way to get the board state as a String or rather JSON Object that makes sense to the client
+                System.out.println("invalid move");
+                conn.send("{\"topic\":\"gameMove\",\"command\":\"mark\",\"error\":\"fieldTaken\",\"boardState\":\""+gameboard.toString()+"\"}");
             }
         }
         else{
-            conn.send("Not your turn");
+            //Client should not be sending, tell them
+            System.out.println("Not setting the move");
+            conn.send("{\"topic\":\"gameSession\",\"command\":\"gameState\",\"info\":\"opponentsTurn\"}");
         }
     }
+
+    private boolean checkGameOver(Integer[] gameboard){
+        //TODO Spielfeld auf Gewinner prüfen --> Einzelspieler-Logik nutzen/nutzbar machen
+        return false;
+    };
+
+    public Player getPlayer1(){
+        return player1;
+    }
+    public Player getPlayer2(){return player2;}
 }
