@@ -12,6 +12,7 @@ Peggy, Iris, Florian, Daniel
 
 # WebClient Nutzung
 *** Der Webclient unterstützt das TTT-Protokoll nicht mehr *** Nicht mehr verwenden *** Baut aber immer noch eine Websocket-Verbindung auf bei richtiger Einstellung
+
 Ist ein Node.js Projekt, sollte aber auch einfach mit der HTML-Datei laufen
 
 1. Server in IntelliJ IDEA o. ä. starten
