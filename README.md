@@ -7,7 +7,11 @@ Spring Boot Project with Netty Server to handle REST as well as TicTacToe
 # Students
 Peggy, Iris, Florian, Daniel
 
+# TicTacToe-Protokoll 2.0 Stand 15.12.
+Ältere Anmeldestrings u.ä. versteht der Server nicht mehr, nur aktuelle App verwenden :-)
+
 # WebClient Nutzung
+*** Der Webclient unterstützt das TTT-Protokoll nicht mehr *** Nicht mehr verwenden *** Baut aber immer noch eine Websocket-Verbindung auf bei richtiger Einstellung
 Ist ein Node.js Projekt, sollte aber auch einfach mit der HTML-Datei laufen
 
 1. Server in IntelliJ IDEA o. ä. starten
