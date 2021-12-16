@@ -6,3 +6,18 @@ Spring Boot Project with Netty Server to handle REST as well as TicTacToe
 
 # Students
 Peggy, Iris, Florian, Daniel
+
+# TicTacToe-Protokoll 2.0 Stand 15.12.
+Ältere Anmeldestrings u.ä. versteht der Server nicht mehr, nur aktuelle App verwenden :-)
+
+# WebClient Nutzung
+*** Der Webclient unterstützt das TTT-Protokoll nicht mehr *** Nicht mehr verwenden *** Baut aber immer noch eine Websocket-Verbindung auf bei richtiger Einstellung
+
+Ist ein Node.js Projekt, sollte aber auch einfach mit der HTML-Datei laufen
+
+1. Server in IntelliJ IDEA o. ä. starten
+2. Dieser richtet einen Webserver unter localhost:8080 und einen websocket-server unter localhost:8088 ein.
+3. WebClient öffnen, Anmeldung sollte automatisch gehen, der eigene (zufällige) Name erscheinen
+4. Zweites Tab mit neuem Webclient öffnen, bei beiden sollten jetzt beide Namen stehen
+5. Im 1. Client den 2. anklicken, Tic Tac Toe spielen
+6. -> Man kann noch nicht gewinnen oder das Spiel zurücksetzen, dafür muss man den Client einfach neu laden. Die Änderungen an der Namensliste sollten dann automatisch kommen.
