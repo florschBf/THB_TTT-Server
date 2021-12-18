@@ -58,6 +58,7 @@ public class TicTacToeSocketServer extends WebSocketServer {
             case ("add player called"):
                 try {
                     addPlayerToList(this.messageHandler.getPlayerFromMsg(conn, message));
+                    conn.send(logOnHandler.informPlayerOfUID(conn));
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
