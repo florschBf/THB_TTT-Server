@@ -34,7 +34,13 @@ public class TicTacToeSocketServer extends WebSocketServer {
         System.out.println("closed " + conn.getRemoteSocketAddress() + " with exit code " + code + " additional info: " + reason);
         //TODO handle disconnects on Players who are in a gamesession.
         //e.g. check whether player is in game and if he is, get his gamesession to properly inform player2 and quit the thing
-        this.logOnHandler.removePlayer(conn);
+        //who is disconnecting? need to know!
+        Player player = this.logOnHandler.getPlayerByConn(conn);
+        if (player.getInGame()){
+            System.out.println("Disconnect in a game, ohoh");
+            player.getGameSession().quitGameDisconnect(player);
+        }
+        this.logOnHandler.removePlayer(player);
         broadcast(logOnHandler.returnPlayers());
     }
 

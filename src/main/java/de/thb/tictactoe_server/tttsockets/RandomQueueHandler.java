@@ -22,6 +22,8 @@ public class RandomQueueHandler {
             Player p2 = returnFirstInQueue(); //this removes the person from the queue!
             GameSessionHandler newGame = new GameSessionHandler(p1,p2);
             newGame.initGame("gameConfirmed"); //auto confirming here, no need to query players again
+            //remove player from queue, he got a match, p2 should be removed already
+            removePlayerFromQueue(p1);
         }
         else{
             //no one else in queue, will have to wait for someone

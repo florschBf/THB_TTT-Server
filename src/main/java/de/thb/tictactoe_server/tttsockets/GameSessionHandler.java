@@ -79,10 +79,7 @@ public class GameSessionHandler {
             //Think that is all that needs cleaning
             this.p1.send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"denied\"}");
             this.p2.send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"denied\"}");
-            this.player1.setInGame(false);
-            this.player2.setInGame(false);
-            this.player1.setGameSession(null);
-            this.player2.setGameSession(null);
+            endGameSession();
             return false;
         }
         return false;
@@ -159,4 +156,42 @@ public class GameSessionHandler {
         return player1;
     }
     public Player getPlayer2(){return player2;}
+
+    /**
+     * Methode um mitzuteilen, dass das Spiel beendet wurde,
+     * @param player Der Spieler, dessen Verbindung abgebrochen hat. Der braucht keine Nachricht mehr :-)
+     */
+    public void quitGameDisconnect(Player player) {
+        System.out.println("informing remaining player");
+        if (player == player1){
+            p2.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"now\",\"reason\":\"opponentDisco\"}");
+        }
+        else { p1.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"now\",\"reason\":\"opponentDisco\"}"); }
+        System.out.println("closing game session");
+        endGameSession();
+
+    }
+
+    /**
+     * Methode um die Spieler wieder freizuschalten
+     */
+    public void endGameSession(){
+        //Extra vorsichtig mit den try/catch, falls der Spieler schon gelöscht wurde. Sollte eigentlich nicht vorkommen, da Playerobjekte erst von der garbage collection erwischt werden sollten
+        try {
+            this.player1.setInGame(false);
+            this.player1.setGameSession(null);
+        }
+        catch (Exception e){
+            System.out.println("Guess player wasn't there anymore..");
+            e.printStackTrace();
+        }
+        try {
+            this.player2.setInGame(false);
+            this.player2.setGameSession(null);
+        }
+        catch (Exception e){
+            System.out.println("Guess player wasn't there anymore..");
+            e.printStackTrace();
+        }
+    }
 }
