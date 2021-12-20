@@ -49,6 +49,27 @@ public class SocketLogOnHandler {
     }
 
     /**
+     * Alternative Methode zum Entfernen von Spielern aus der Liste
+     * @param player Das Player-OBjekt, das entfernt werden soll.
+     * @return true für erfolgreich entfernt, false wenn etwas schief gegangen ist beim Entfernen.
+     * --> aus false kann nicht abgeleitet werden, dass der Spieler noch in der Liste ist. Evtl. war er schon gar nicht mehr da... spooky. Sollte aber nicht passieren.
+     */
+    public boolean removePlayer(Player player){
+        try{
+            System.out.println("removing Player from List");
+            this.playerList.remove(player);
+            player.getConn().close();
+            System.out.println("removed and closed conn again for good measure if its still open");
+            return true;
+        }
+        catch (Exception e){
+            System.out.println("err, couldnt remove player");
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
      * Method to return the playerList in JSON format for broadcast to all clients
      * @return String der Spielerliste mit "topic":"signup", "players":"all" und Spielerobjekten, TTT-Protokoll V1.1
      */
