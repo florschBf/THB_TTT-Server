@@ -4,6 +4,9 @@ import org.json.simple.JSONObject;
 
 import java.util.Objects;
 
+/**
+ * Klasse zum Auslesen der Spielzüge aus den Nachrichten, die mit "topic":"gameMove" gekennzeichnet sind.
+ */
 public class MoveMsgHandler implements MsgHandler {
     @Override
     public String handle(JSONObject payload) {

@@ -9,7 +9,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 /**
- * Klasse um Nachrichten, die über Websocket empfangen werden, auszuwerten
+ * Klasse um Nachrichten, die über den Websocketserver empfangen werden, auszuwerten
  */
 public class SocketMessageHandler {
     private final SignUpMsgHandler signUpMsg = new SignUpMsgHandler();

@@ -6,7 +6,9 @@ import org.java_websocket.WebSocket;
 import java.util.Arrays;
 import java.util.Random;
 
-
+/**
+ * Klasse um TicTacToe-Spiele zwischen zwei Spielern zu verwalten
+ */
 public class GameSessionHandler {
     private Player player1, player2;
     private Integer[] gameboard = {0,0,0,0,0,0,0,0,0};
@@ -139,6 +141,14 @@ public class GameSessionHandler {
         }
     }
 
+    /**
+     * Methode um zu prüfen, ob einer der Spieler gewonnen hat.
+     * Falls es einen Sieger oder ein Unentschieden gibt, werden automatisch die Spieler benachrichtigt und die Session beendet
+     * @param gameboard Integer-Array, welches das Spielbrett auf den Positionen 0-8 repräsentiert.
+     *                  0 = leer
+     *                  1 = Zeichen von Spieler 1
+     *                  2 = Zeichen von Spieler 2
+     */
     private void checkGameOver(Integer[] gameboard){
         //TODO Spielfeld auf Gewinner prüfen --> Einzelspieler-Logik nutzen/nutzbar machen
         // Zeilen prüfen
@@ -236,7 +246,7 @@ public class GameSessionHandler {
     }
 
     /**
-     * Methode um die Spieler wieder freizuschalten
+     * Methode um die Spieler wieder freizuschalten, damit sie ein neues Spiel auf dem Server starten können.
      */
     public void endGameSession(){
         //Extra vorsichtig mit den try/catch, falls der Spieler schon gelöscht wurde. Sollte eigentlich nicht vorkommen, da Playerobjekte erst von der garbage collection erwischt werden sollten
