@@ -12,9 +12,12 @@ public class SocketLogOnHandler {
     private final ArrayList<Player> playerList = new ArrayList<>();
 
     public SocketLogOnHandler(){
-
     }
 
+    /**
+     * Fügt einen Spieler zur aktiven Spielerliste hinzu
+     * @param newPlayer Das Player-Objekt des hinzuzufügenden Spielers
+     */
     public void addConnToPlayerList(Player newPlayer){
         this.playerList.add(newPlayer);
         System.out.println("added " + newPlayer + " to PlayerList");
@@ -31,9 +34,7 @@ public class SocketLogOnHandler {
      * @return boolean true, wenn alles geklappt hat, false bei exception (duh)
      */
     public boolean removePlayer(WebSocket conn){
-        //TODO player deletion is wonky... delete on list iteration not working! Solved by closing Conn and filtering for closed -> NOT solved, TEST
-        //currently does not delete on socket but removes closed connections from the list -> still needs fixing? Is workable though, updates the list properly
-        //conn.close() not working
+        //TODO player deletion is wonky... think is solved: getPlayerByConn -> playerList.remove(player) seems to be working --> test some
         try{
             System.out.println(conn);
             Player player = getPlayerByConn(conn);
@@ -52,6 +53,27 @@ public class SocketLogOnHandler {
     }
 
     /**
+     * Alternative Methode zum Entfernen von Spielern aus der Liste
+     * @param player Das Player-OBjekt, das entfernt werden soll.
+     * @return true für erfolgreich entfernt, false wenn etwas schief gegangen ist beim Entfernen.
+     * --> aus false kann nicht abgeleitet werden, dass der Spieler noch in der Liste ist. Evtl. war er schon gar nicht mehr da... spooky. Sollte aber nicht passieren.
+     */
+    public boolean removePlayer(Player player){
+        try{
+            System.out.println("removing Player from List");
+            this.playerList.remove(player);
+            player.getConn().close();
+            System.out.println("removed and closed conn again for good measure if its still open");
+            return true;
+        }
+        catch (Exception e){
+            System.out.println("err, couldnt remove player");
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
      * Method to return the playerList in JSON format for broadcast to all clients
      * @return String der Spielerliste mit "topic":"signup", "players":"all" und Spielerobjekten, TTT-Protokoll V1.1
      */
@@ -59,6 +81,7 @@ public class SocketLogOnHandler {
         //seems fine new
         JSONObject list = new JSONObject();
         list.put("topic","signup");
+        list.put("command","list");
         list.put("players","all");
         Integer i = 0;
         for (Player player : playerList){
@@ -149,5 +172,11 @@ public class SocketLogOnHandler {
         System.out.println("Setzte Player " + playerID + " als frei.");
         String cmd = "{\"topic\":\"signup\",\"players\":\""+playerID+" is available\"}";
         return cmd;
+    }
+
+    public String informPlayerOfUID(WebSocket conn) {
+        String playerUID = getPlayerByConn(conn).getUid().toString();
+        System.out.println("sending playeruid: " + playerUID);
+        return "{\"topic\":\"signup\",\"command\":\"register\",\"yourUID\":\""+playerUID+"\"}";
     }
 }
