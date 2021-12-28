@@ -9,3 +9,4 @@ ENTRYPOINT ["java", "-jar", "/thb_tictactoe_server.jar"]
 
 ### Try and expose port automatically, never works <_< >_>
 EXPOSE 8080
+EXPOSE 8088

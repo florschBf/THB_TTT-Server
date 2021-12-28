@@ -14,6 +14,10 @@ public class SocketLogOnHandler {
     public SocketLogOnHandler(){
     }
 
+    /**
+     * Fügt einen Spieler zur aktiven Spielerliste hinzu
+     * @param newPlayer Das Player-Objekt des hinzuzufügenden Spielers
+     */
     public void addConnToPlayerList(Player newPlayer){
         this.playerList.add(newPlayer);
         System.out.println("added " + newPlayer + " to PlayerList");
