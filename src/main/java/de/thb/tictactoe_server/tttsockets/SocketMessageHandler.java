@@ -104,6 +104,14 @@ public class SocketMessageHandler {
         }
     }
 
+    public String getPlayerIconIdFromMessage(String message) throws ParseException {
+        JSONObject payload = parseJSONString(message);
+        if (payload.containsKey("playerIcon")){
+            return payload.get("playerIcon").toString();
+        }
+        else { return null; }
+    }
+
     /**
      * Methode um Antworten auf Spieleanfragen zu verarbeiten
      * @param message String mit Antwort auf Spielanfrage nach TTT-Protokoll
