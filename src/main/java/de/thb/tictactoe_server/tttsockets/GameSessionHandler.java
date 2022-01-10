@@ -16,6 +16,7 @@ public class GameSessionHandler {
     private boolean player1Turn;
     private boolean draw = false;
     private Integer gameid = null;
+    private int p1Icon, p2Icon;
 
     /**
      * Constructor benötigt zwei Player Objekte zum Spielen
@@ -61,12 +62,12 @@ public class GameSessionHandler {
                     "\"command\":\"startgame\"," +
                     "\"state\":\"confirmed\"," +
                     "\"opponent\":\""+this.player2.getName()+"\"," +
-                    "\"opponentIcon\":\"none\"}");
+                    "\"opponentIcon\":\""+this.player2.getIcon()+"\"}");
             this.p2.send("{\"topic\":\"gameSession\"," +
                     "\"command\":\"startgame\"," +
                     "\"state\":\"confirmed\"," +
                     "\"opponent\":\""+this.player1.getName()+"\"," +
-                    "\"opponentIcon\":\"none\"}");
+                    "\"opponentIcon\":\""+this.player1.getIcon()+"\"}");
             //Tell Clients who goes first
             if(player1Turn) {
                 this.p1.send("{\"topic\":\"gameSession\",\"command\":\"gameState\",\"info\":\"yourTurn\"}");
@@ -114,7 +115,8 @@ public class GameSessionHandler {
                 checkGameOver(gameboard);
             }
             else{
-                //Feld schon gesetzt, geht nicht // TODO implement a way to get the board state as a String or rather JSON Object that makes sense to the client
+                //Feld schon gesetzt, geht nicht //
+                //Wird eigentlich am Client bereits verhindert
                 System.out.println("invalid move");
                 conn.send("{\"topic\":\"gameMove\",\"command\":\"mark\",\"error\":\"fieldTaken\",\"boardState\":\""+gameboard.toString()+"\"}");
             }
@@ -129,7 +131,8 @@ public class GameSessionHandler {
                 checkGameOver(gameboard);
             }
             else{
-                //Feld schon gesetzt, geht nicht // TODO implement a way to get the board state as a String or rather JSON Object that makes sense to the client
+                //Feld schon gesetzt, geht nicht //
+                //Wird eigentlich am Client bereits verhindert
                 System.out.println("invalid move");
                 conn.send("{\"topic\":\"gameMove\",\"command\":\"mark\",\"error\":\"fieldTaken\",\"boardState\":\""+gameboard.toString()+"\"}");
             }
@@ -150,8 +153,6 @@ public class GameSessionHandler {
      *                  2 = Zeichen von Spieler 2
      */
     private void checkGameOver(Integer[] gameboard){
-        //TODO Spielfeld auf Gewinner prüfen --> Einzelspieler-Logik nutzen/nutzbar machen
-        // Zeilen prüfen
         if ((gameboard[0] == 1 && gameboard[1] == 1 && gameboard[2] == 1) ||
                 (gameboard[3] == 1 && gameboard[4] == 1 && gameboard[5] == 1) ||
                 (gameboard[6] == 1 && gameboard[7] == 1 && gameboard[8] == 1)) {

@@ -88,7 +88,7 @@ public class TicTacToeSocketServer extends WebSocketServer {
             case ("startgame"):
                 Player player1 = logOnHandler.getPlayerByConn(conn);
                 if(player1.getInGame()){
-                    conn.send("Error, you're in a game already"); //TODO Protokoll für Fehlermeldungen?
+                    conn.send("Error, you're in a game already"); //sollte am Client bereits verhindert worden sein
                 }
                 else{
                     Player player2 = null;
@@ -105,7 +105,14 @@ public class TicTacToeSocketServer extends WebSocketServer {
                 }
                 break;
             case ("startRandom"):
-                randomQueue.addPlayerToQueue(logOnHandler.getPlayerByConn(conn));
+                Player requestee = logOnHandler.getPlayerByConn(conn);
+                try {
+                    requestee.setIcon(messageHandler.getPlayerIconIdFromMessage(message));
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                    requestee.setIcon("0");
+                }
+                randomQueue.addPlayerToQueue(requestee);
                 //this automatically triggers games for the client in RandomQueueHandler if someone else wants to play
                 break;
             case ("stopRandom"):
@@ -183,7 +190,7 @@ public class TicTacToeSocketServer extends WebSocketServer {
 
     @Override
     public void onStart() {
-        System.out.println("TicTacToe socket server started successfully on port " + this.getPort());
+        System.out.println("TicTacToe socket server started successfully on " +  this.getAddress());
         this.setConnectionLostTimeout(0);
         this.setConnectionLostTimeout(10000);
     }
