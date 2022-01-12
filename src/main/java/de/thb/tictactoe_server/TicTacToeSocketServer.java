@@ -89,6 +89,7 @@ public class TicTacToeSocketServer extends WebSocketServer {
                 Player player1 = logOnHandler.getPlayerByConn(conn);
                 if(player1.getInGame()){
                     conn.send("Error, you're in a game already"); //sollte am Client bereits verhindert worden sein
+                    break;
                 }
                 else{
                     Player player2 = null;
@@ -96,9 +97,13 @@ public class TicTacToeSocketServer extends WebSocketServer {
                         player2 = logOnHandler.getPlayerByUid(messageHandler.getPlayerUidFromMessage(message));
                     } catch (ParseException e) {
                         e.printStackTrace();
+                        conn.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"now\",\"reason\":\"opponentDisco\"}");
                         break;
                     }
                     GameSessionHandler session = new GameSessionHandler(player1, player2);
+                    //sending challenge to player2, telling p1 to wait
+                    conn.send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"hold\"}");
+                    player2.getConn().send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"challenged\",\"opponent\":\"" + player1.getName() + "\"}");
                     //markiere Spieler als beschäftigt in der Liste der Clients
                     broadcast(logOnHandler.setPlayerAsBusy(player1));
                     broadcast(logOnHandler.setPlayerAsBusy(player2));
@@ -133,11 +138,14 @@ public class TicTacToeSocketServer extends WebSocketServer {
                         //Spieler müssen wieder freigegeben werden - rest of cleanup in GameSessionHandler initGame method
                         broadcast(logOnHandler.setPlayerAsFree(p1));
                         broadcast(logOnHandler.setPlayerAsFree(p2));
+                        p1.getConn().send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"now\",\"reason\":\"opponentDisco\"}");
+                        conn.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"now\",\"reason\":\"opponentDisco\"}");
                     }
                 } catch (ParseException e) {
                     System.out.println("Error on game request answer - something wrong with the format.");
                     e.printStackTrace();
                 }
+                break;
 
                 //TOPIC GAMEMOVE RESPONSES
             case("Feld 0 gesetzt"):
@@ -171,7 +179,23 @@ public class TicTacToeSocketServer extends WebSocketServer {
             case("Feld 8 gesetzt"):
                 logOnHandler.getPlayerByConn(conn).getGameSession().move(conn,8);
                 break;
-
+            case("quitgame init"):
+                Player initQuitP = logOnHandler.getPlayerByConn(conn);
+                Player potentialOtherPlayer = initQuitP.getGameSession().getPlayer2();
+                if (initQuitP != potentialOtherPlayer){
+                    //can confirm, got the other connection, do nth
+                }
+                else {
+                    //got wrong one, switching
+                    potentialOtherPlayer = initQuitP.getGameSession().getPlayer1();
+                }
+                potentialOtherPlayer.getConn().send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"now\",\"reason\":\"opponentDisco\"}");
+                potentialOtherPlayer.setInGame(false);
+                potentialOtherPlayer.setGameSession(null);
+                conn.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"confirmed\"}");
+                initQuitP.setGameSession(null);
+                initQuitP.setInGame(false);
+                break;
             default:
                 System.out.println("didn't understand the message");
                 conn.send("Error, malformed message, stick to protocol. Your message was: " + message);

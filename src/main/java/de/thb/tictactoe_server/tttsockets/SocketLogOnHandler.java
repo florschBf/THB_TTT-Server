@@ -171,6 +171,8 @@ public class SocketLogOnHandler {
         String playerID = player.getUid().toString();
         System.out.println("Setzte Player " + playerID + " als frei.");
         String cmd = "{\"topic\":\"signup\",\"players\":\""+playerID+" is available\"}";
+        player.setInGame(false);
+        player.setGameSession(null);
         return cmd;
     }
 

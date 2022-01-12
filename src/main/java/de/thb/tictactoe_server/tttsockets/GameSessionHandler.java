@@ -44,10 +44,6 @@ public class GameSessionHandler {
         System.out.println("This is the gameID: " + this.gameid);
         this.player1.setGameSession(this);
         this.player2.setGameSession(this);
-
-        //sending challenge to player2, telling p1 to wait
-        this.p1.send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"hold\"}");
-        this.p2.send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"challenged\"}");
     }
 
     /**
