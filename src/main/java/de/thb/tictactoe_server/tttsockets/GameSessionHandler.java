@@ -13,7 +13,7 @@ public class GameSessionHandler {
     private Player player1, player2;
     private Integer[] gameboard = {0,0,0,0,0,0,0,0,0};
     private WebSocket p1, p2;
-    private boolean player1Turn;
+    private boolean player1Turn, p1ready = false, p2ready = false;
     private boolean draw = false;
     private Integer gameid = null;
     private int p1Icon, p2Icon;
@@ -51,8 +51,9 @@ public class GameSessionHandler {
      * @param message Ausgewertete Antwort des angefragten Spielers
      * @return true = Spiel zustande gekommen, warte auf Zug | false = Spiel abgelehnt, Spielsession rückabwickeln
      */
-    public Boolean initGame(String message){
+    public void initGame(String message){
         if (message.equals("gameConfirmed")){
+
             //START GAME
             this.p1.send("{\"topic\":\"gameSession\"," +
                     "\"command\":\"startgame\"," +
@@ -64,6 +65,21 @@ public class GameSessionHandler {
                     "\"state\":\"confirmed\"," +
                     "\"opponent\":\""+this.player1.getName()+"\"," +
                     "\"opponentIcon\":\""+this.player1.getIcon()+"\"}");
+            //Warte auf Spieler-Confirm
+        }
+        else if (message.equals("gameDenied")){
+            //Think that is all that needs cleaning
+            this.p1.send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"denied\"}");
+            this.p2.send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"denied\"}");
+            endGameSession();
+        }
+    }
+
+    /**
+     * Methode um Client zu sagen wer anfängt
+     */
+    public void tellTurns(){
+        if (p1ready && p2ready){
             //Tell Clients who goes first
             if(player1Turn) {
                 this.p1.send("{\"topic\":\"gameSession\",\"command\":\"gameState\",\"info\":\"yourTurn\"}");
@@ -73,17 +89,11 @@ public class GameSessionHandler {
                 this.p1.send("{\"topic\":\"gameSession\",\"command\":\"gameState\",\"info\":\"opponentsTurn\"}");
                 this.p2.send("{\"topic\":\"gameSession\",\"command\":\"gameState\",\"info\":\"yourTurn\"}");
             }
-            //Warte auf Spielerzüge
-            return true;
         }
-        else if (message.equals("gameDenied")){
-            //Think that is all that needs cleaning
-            this.p1.send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"denied\"}");
-            this.p2.send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"denied\"}");
-            endGameSession();
-            return false;
+        else {
+            //waiting for both players to be ready
+            System.out.println("both players not ready yet");
         }
-        return false;
     }
 
     /**
@@ -262,6 +272,22 @@ public class GameSessionHandler {
         catch (Exception e){
             System.out.println("Guess player wasn't there anymore..");
             e.printStackTrace();
+        }
+    }
+
+    public void setPlayerReady(Player player) {
+        if (player == this.player1){
+            this.p1ready = true;
+            System.out.println("setting p1 ready: "+ this.p1ready);
+            System.out.println("p2 status: " + this.p2ready);
+        }
+        else if (player == this.player2){
+            this.p2ready = true;
+            System.out.println("setting p2 ready: "+ this.p2ready);
+            System.out.println("p1 status: " + this.p1ready);
+        }
+        else {
+            System.out.println("I dont know that player, cant be ready... this is bad");
         }
     }
 }

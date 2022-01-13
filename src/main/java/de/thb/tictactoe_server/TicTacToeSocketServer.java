@@ -87,6 +87,12 @@ public class TicTacToeSocketServer extends WebSocketServer {
                 // TOPIC GAMESESSION RESPONSES
             case ("startgame"):
                 Player player1 = logOnHandler.getPlayerByConn(conn);
+                //update player icon, while we have it
+                try {
+                    player1.setIcon(messageHandler.getPlayerIconIdFromMessage(message));
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
                 if(player1.getInGame()){
                     conn.send("Error, you're in a game already"); //sollte am Client bereits verhindert worden sein
                     break;
@@ -130,8 +136,12 @@ public class TicTacToeSocketServer extends WebSocketServer {
                     //Game request answers are ALWAYS from player2 in the gamesession, thus we get them like this:
                     Player p2 = logOnHandler.getPlayerByConn(conn); //player2 send the answer
                     Player p1 = p2.getGameSession().getPlayer1(); //getting the original request origin player from the session
-                    if(p2.getGameSession().initGame(messageHandler.getStartGameReply(message))){
-                        //Game started successfully, dont have to do anything, don't need the break either.
+                    String answer = messageHandler.getStartGameReply(message);
+                    if(answer.equals("gameConfirmed")){
+                        //set p2 icon from message
+                        p2.setIcon(messageHandler.getPlayerIconIdFromMessage(message));
+                        //Game confirmed, init the game
+                        p2.getGameSession().initGame(answer);
                     }
                     else {
                         //Game was denied or failed, Gamesession returned false or nothing
@@ -146,7 +156,13 @@ public class TicTacToeSocketServer extends WebSocketServer {
                     e.printStackTrace();
                 }
                 break;
-
+            case("turnInfo"):
+                System.out.println("giving out turnInfo");
+                Player player = logOnHandler.getPlayerByConn(conn);
+                GameSessionHandler session = player.getGameSession();
+                session.setPlayerReady(player);
+                session.tellTurns();
+                break;
                 //TOPIC GAMEMOVE RESPONSES
             case("Feld 0 gesetzt"):
                 // Tell gamesession it's a player move to validate and execute
