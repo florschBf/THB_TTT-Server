@@ -7,8 +7,14 @@ import java.util.ArrayList;
 public class RandomQueueHandler {
     private final ArrayList<Player> randomQueue = new ArrayList<>();
 
+    /**
+     * Methode zum Hinzufügen von Spielern in die Zufallsspielliste
+     * Speichert auch das mitgegebene Icon beim Player-Objekt
+     * @param player Der hinzuzufügende Spieler als Player-Objekt
+     */
     public void addPlayerToQueue(Player player){
         this.randomQueue.add(player);
+
         startGameWithRandom(player);
     }
 

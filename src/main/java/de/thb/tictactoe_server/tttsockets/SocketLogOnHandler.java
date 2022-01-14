@@ -34,7 +34,7 @@ public class SocketLogOnHandler {
      * @return boolean true, wenn alles geklappt hat, false bei exception (duh)
      */
     public boolean removePlayer(WebSocket conn){
-        //TODO player deletion is wonky... think is solved: getPlayerByConn -> playerList.remove(player) seems to be working --> test some
+        //think is solved: getPlayerByConn -> playerList.remove(player) seems to be working flawlessly
         try{
             System.out.println(conn);
             Player player = getPlayerByConn(conn);
@@ -171,9 +171,17 @@ public class SocketLogOnHandler {
         String playerID = player.getUid().toString();
         System.out.println("Setzte Player " + playerID + " als frei.");
         String cmd = "{\"topic\":\"signup\",\"players\":\""+playerID+" is available\"}";
+        player.setInGame(false);
+        player.setGameSession(null);
         return cmd;
     }
 
+    /**
+     * Methode zur Übermittlung der gesetzten UID an den dazugehörigen Client
+     * Damit kann der Client sich selbst in der Spielerliste erkennen, um keine Spiele mit sich selber zu starten
+     * @param conn Die Websocketverbindung, zu der der Client/Spieler gehört
+     * @return Der per Websocket nach TTT-Protokoll 2.0 zu übermittelnde String
+     */
     public String informPlayerOfUID(WebSocket conn) {
         String playerUID = getPlayerByConn(conn).getUid().toString();
         System.out.println("sending playeruid: " + playerUID);

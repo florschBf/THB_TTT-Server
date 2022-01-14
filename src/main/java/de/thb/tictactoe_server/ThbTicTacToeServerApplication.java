@@ -16,16 +16,15 @@ public class ThbTicTacToeServerApplication {
 
 
     public static void main(String[] args) throws InterruptedException {
-        SpringApplication.run(ThbTicTacToeServerApplication.class, args);
-
-        String host = "localhost";
-        int port = 8088;
+        //SpringApplication.run(ThbTicTacToeServerApplication.class, args);
+        String host = "192.168.178.52";
+        int port = 8080;
         WebSocketServer server = new TicTacToeSocketServer(new InetSocketAddress(host, port));
         server.run();
     }
 
-    @Bean
+/*    @Bean
     public CommandLineRunner commandLineRunner(ApplicationContext ctx){
         return args -> System.out.println("Spring Boot running Netty Server");
-    }
+    }*/
 }

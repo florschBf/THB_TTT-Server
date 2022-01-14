@@ -5,13 +5,14 @@ import org.java_websocket.WebSocket;
 
 /**
  * Player GameObject holds Info about participating clients
- * Includes name, firebaseId, uid, socketConnection, gameSession
+ * Includes name, firebaseId, uid, socketConnection, gameSession, icon_choice if applicable
+ * implements GameObject interface
  */
-
 public class Player implements GameObject{
     private String name;
     private String firebaseId;
     private Integer uid;
+    private String icon;
     private WebSocket conn = null;
     private boolean inGame = false;
     private GameSessionHandler gameSession;
@@ -28,6 +29,14 @@ public class Player implements GameObject{
         this.name = name;
         this.firebaseId = firebaseId;
         this.conn = conn;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
     }
 
     public void setGameSession(GameSessionHandler session){
@@ -81,6 +90,11 @@ public class Player implements GameObject{
         return this.inGame;
     }
 
+    /**
+     * Methode zum Vergleich von Websocket-Connections
+     * @param conn Zu vergleichende Websocket-Connection
+     * @return boolean
+     */
     public boolean equals(WebSocket conn){
         if(conn == this.getConn()){
             return true;
