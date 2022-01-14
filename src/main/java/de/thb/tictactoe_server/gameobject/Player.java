@@ -6,8 +6,8 @@ import org.java_websocket.WebSocket;
 /**
  * Player GameObject holds Info about participating clients
  * Includes name, firebaseId, uid, socketConnection, gameSession, icon_choice if applicable
+ * implements GameObject interface
  */
-
 public class Player implements GameObject{
     private String name;
     private String firebaseId;
@@ -90,6 +90,11 @@ public class Player implements GameObject{
         return this.inGame;
     }
 
+    /**
+     * Methode zum Vergleich von Websocket-Connections
+     * @param conn Zu vergleichende Websocket-Connection
+     * @return boolean
+     */
     public boolean equals(WebSocket conn){
         if(conn == this.getConn()){
             return true;

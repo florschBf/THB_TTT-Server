@@ -10,6 +10,12 @@ import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 import org.json.simple.parser.ParseException;
 
+/**
+ * WebSocketServer main class - all threads connect here :-)
+ * contains a SocketMessageHandler to handle incoming messages
+ * contains a SockerLogOnHandler to handle different websocket client connections
+ * contains a RandomQueueHandler for matchmaking purposes
+ */
 public class TicTacToeSocketServer extends WebSocketServer {
     private final SocketMessageHandler messageHandler;
     private final SocketLogOnHandler logOnHandler;
@@ -22,6 +28,12 @@ public class TicTacToeSocketServer extends WebSocketServer {
         this.randomQueue = new RandomQueueHandler();
     }
 
+    /**
+     * Method called on opening of a new websocket connection - not doing much, waiting for connection to register the player accoring to TTT-protocol 2.0
+     * -> happens in onMessage method
+     * @param conn the opened websocket connection
+     * @param handshake handshake data
+     */
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         conn.send("Welcome to the server!"); //This method sends a message to the new client
@@ -29,6 +41,13 @@ public class TicTacToeSocketServer extends WebSocketServer {
         System.out.println("new connection to " + conn.getRemoteSocketAddress());
     }
 
+    /**
+     * Method called on close of a websocket conn
+     * @param conn the closed connection to process
+     * @param code websocket status code
+     * @param reason given reason
+     * @param remote irrelevant ;-)
+     */
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
         System.out.println("closed " + conn.getRemoteSocketAddress() + " with exit code " + code + " additional info: " + reason);
@@ -44,6 +63,12 @@ public class TicTacToeSocketServer extends WebSocketServer {
         broadcast(logOnHandler.returnPlayers());
     }
 
+    /**
+     * Method called on received websocket message, main handler of client and game interactions
+     * ***CHANGES HERE POTENTIALLY BREAK ALL CLIENT INTERACTIONS***
+     * @param conn the websocket connection that send the message
+     * @param message String that arrived - needs to follow TTT-protocol 2.0
+     */
     @Override
     public void onMessage(WebSocket conn, String message) {
         String handledMessage = null;
@@ -55,11 +80,6 @@ public class TicTacToeSocketServer extends WebSocketServer {
             e.printStackTrace();
         }
         switch (handledMessage){
-            //TODO for TTT-Protokoll 1.1 implement startgame:deny, Session Clean Up on END or DENY
-            //TODO command:quitgame,state:initiate // state:confirm
-            //TODO revisit topic:gameMove, command:mark, field:8..
-            //think that's all, that is left...
-
                 // TOPIC SIGNUP RESPONSES
             case ("add player called"):
                 try {
@@ -163,6 +183,25 @@ public class TicTacToeSocketServer extends WebSocketServer {
                 session.setPlayerReady(player);
                 session.tellTurns();
                 break;
+            case("quitgame init"):
+                Player initQuitP = logOnHandler.getPlayerByConn(conn);
+                Player potentialOtherPlayer = initQuitP.getGameSession().getPlayer2();
+                //Need to find out who is who
+                if (initQuitP != potentialOtherPlayer){
+                    //can confirm, got the other connection, do nth
+                }
+                else {
+                    //got wrong one, switching
+                    potentialOtherPlayer = initQuitP.getGameSession().getPlayer1();
+                }
+                //tell players that game is over and free up players from game connection
+                potentialOtherPlayer.getConn().send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"now\",\"reason\":\"opponentDisco\"}");
+                potentialOtherPlayer.setInGame(false);
+                potentialOtherPlayer.setGameSession(null);
+                conn.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"confirmed\"}");
+                initQuitP.setGameSession(null);
+                initQuitP.setInGame(false);
+                break;
                 //TOPIC GAMEMOVE RESPONSES
             case("Feld 0 gesetzt"):
                 // Tell gamesession it's a player move to validate and execute
@@ -195,23 +234,6 @@ public class TicTacToeSocketServer extends WebSocketServer {
             case("Feld 8 gesetzt"):
                 logOnHandler.getPlayerByConn(conn).getGameSession().move(conn,8);
                 break;
-            case("quitgame init"):
-                Player initQuitP = logOnHandler.getPlayerByConn(conn);
-                Player potentialOtherPlayer = initQuitP.getGameSession().getPlayer2();
-                if (initQuitP != potentialOtherPlayer){
-                    //can confirm, got the other connection, do nth
-                }
-                else {
-                    //got wrong one, switching
-                    potentialOtherPlayer = initQuitP.getGameSession().getPlayer1();
-                }
-                potentialOtherPlayer.getConn().send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"now\",\"reason\":\"opponentDisco\"}");
-                potentialOtherPlayer.setInGame(false);
-                potentialOtherPlayer.setGameSession(null);
-                conn.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"confirmed\"}");
-                initQuitP.setGameSession(null);
-                initQuitP.setInGame(false);
-                break;
             default:
                 System.out.println("didn't understand the message");
                 conn.send("Error, malformed message, stick to protocol. Your message was: " + message);
@@ -235,6 +257,11 @@ public class TicTacToeSocketServer extends WebSocketServer {
         this.setConnectionLostTimeout(10000);
     }
 
+    /**
+     * Method to add a Player object to the PlayerList
+     * Calls SocketLogOnHandler for actual handling
+     * @param newPlayer the Player object to add to the list
+     */
     public void addPlayerToList(Player newPlayer){
         this.logOnHandler.addConnToPlayerList(newPlayer);
     }

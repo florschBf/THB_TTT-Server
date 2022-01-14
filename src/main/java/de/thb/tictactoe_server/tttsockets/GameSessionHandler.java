@@ -29,7 +29,7 @@ public class GameSessionHandler {
         this.player2 = player2;
         System.out.println(this.player2);
         if (player1 == player2){
-            //TODO catch this case and tell client to fuck off
+            //prevented on client side, client can't see and select itself in list, not preventing it, just logging
             System.out.println("well, that's gonna be boring");
         }
         //Markiere Spieler als in einer Gamesession, damit keine weiteren geöffnet werden können
@@ -40,7 +40,7 @@ public class GameSessionHandler {
         Random rd = new Random();
         this.player1Turn = rd.nextBoolean();
         System.out.println("Is it player1 turn?: " + this.player1Turn);
-        this.gameid = player1.getUid() * player2.getUid();
+        this.gameid = player1.getUid() + player2.getUid(); //adding instead of multiplication
         System.out.println("This is the gameID: " + this.gameid);
         this.player1.setGameSession(this);
         this.player2.setGameSession(this);
@@ -53,7 +53,6 @@ public class GameSessionHandler {
      */
     public void initGame(String message){
         if (message.equals("gameConfirmed")){
-
             //START GAME
             this.p1.send("{\"topic\":\"gameSession\"," +
                     "\"command\":\"startgame\"," +
@@ -76,11 +75,11 @@ public class GameSessionHandler {
     }
 
     /**
-     * Methode um Client zu sagen wer anfängt
+     * Methode um beiden Clients zu sagen, wer anfängt bzw. wer am Zug ist
      */
     public void tellTurns(){
         if (p1ready && p2ready){
-            //Tell Clients who goes first
+            //Tell Clients who goes first as both are ready
             if(player1Turn) {
                 this.p1.send("{\"topic\":\"gameSession\",\"command\":\"gameState\",\"info\":\"yourTurn\"}");
                 this.p2.send("{\"topic\":\"gameSession\",\"command\":\"gameState\",\"info\":\"opponentsTurn\"}");
@@ -98,9 +97,9 @@ public class GameSessionHandler {
 
     /**
      * Methode zur Markierung der TicTacToe-Felder
-     * Speichert Markierung für Spieler im GameBoard
-     * Gibt Bestätigung zurück
-     * Lehnt ab, wenn Spieler nicht am Zug
+     * Speichert Markierung für Spieler im GameBoard.
+     * Gibt Bestätigung zurück.
+     * Lehnt ab, wenn Spieler nicht am Zug ist.
      * @param conn Verbindung des eingebenden Spielers
      * @param feld gewähltes Feld von links oben 1 bis rechts unten 9
      */
@@ -159,6 +158,7 @@ public class GameSessionHandler {
      *                  2 = Zeichen von Spieler 2
      */
     private void checkGameOver(Integer[] gameboard){
+        //Zeilen prüfen
         if ((gameboard[0] == 1 && gameboard[1] == 1 && gameboard[2] == 1) ||
                 (gameboard[3] == 1 && gameboard[4] == 1 && gameboard[5] == 1) ||
                 (gameboard[6] == 1 && gameboard[7] == 1 && gameboard[8] == 1)) {
@@ -220,7 +220,7 @@ public class GameSessionHandler {
         this.draw = true;
         for (int i = 0; i < Arrays.stream(gameboard).count(); i++) {
             if (gameboard[i] == 0) {
-                //still empty space on the board, not a draw yet, doing nothing
+                //still empty space on the board, not a draw yet
                 this.draw = false;
             }
         }
@@ -275,6 +275,10 @@ public class GameSessionHandler {
         }
     }
 
+    /**
+     * Methode registriert, dass die Spieler bereit sind. Wird vom Server auf Nachricht des Clients aufgerufen.
+     * @param player Der Spieler, der bereit ist.
+     */
     public void setPlayerReady(Player player) {
         if (player == this.player1){
             this.p1ready = true;
