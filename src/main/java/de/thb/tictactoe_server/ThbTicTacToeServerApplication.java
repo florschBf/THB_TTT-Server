@@ -23,8 +23,8 @@ public class ThbTicTacToeServerApplication {
         server.run();
     }
 
-    @Bean
+/*    @Bean
     public CommandLineRunner commandLineRunner(ApplicationContext ctx){
         return args -> System.out.println("Spring Boot running Netty Server");
-    }
+    }*/
 }

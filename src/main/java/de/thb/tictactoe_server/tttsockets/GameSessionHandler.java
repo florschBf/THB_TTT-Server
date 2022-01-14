@@ -13,7 +13,7 @@ public class GameSessionHandler {
     private Player player1, player2;
     private Integer[] gameboard = {0,0,0,0,0,0,0,0,0};
     private WebSocket p1, p2;
-    private boolean player1Turn;
+    private boolean player1Turn, p1ready = false, p2ready = false;
     private boolean draw = false;
     private Integer gameid = null;
     private int p1Icon, p2Icon;
@@ -29,7 +29,7 @@ public class GameSessionHandler {
         this.player2 = player2;
         System.out.println(this.player2);
         if (player1 == player2){
-            //TODO catch this case and tell client to fuck off
+            //prevented on client side, client can't see and select itself in list, not preventing it, just logging
             System.out.println("well, that's gonna be boring");
         }
         //Markiere Spieler als in einer Gamesession, damit keine weiteren geöffnet werden können
@@ -40,14 +40,10 @@ public class GameSessionHandler {
         Random rd = new Random();
         this.player1Turn = rd.nextBoolean();
         System.out.println("Is it player1 turn?: " + this.player1Turn);
-        this.gameid = player1.getUid() * player2.getUid();
+        this.gameid = player1.getUid() + player2.getUid(); //adding instead of multiplication
         System.out.println("This is the gameID: " + this.gameid);
         this.player1.setGameSession(this);
         this.player2.setGameSession(this);
-
-        //sending challenge to player2, telling p1 to wait
-        this.p1.send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"hold\"}");
-        this.p2.send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"challenged\"}");
     }
 
     /**
@@ -55,7 +51,7 @@ public class GameSessionHandler {
      * @param message Ausgewertete Antwort des angefragten Spielers
      * @return true = Spiel zustande gekommen, warte auf Zug | false = Spiel abgelehnt, Spielsession rückabwickeln
      */
-    public Boolean initGame(String message){
+    public void initGame(String message){
         if (message.equals("gameConfirmed")){
             //START GAME
             this.p1.send("{\"topic\":\"gameSession\"," +
@@ -68,7 +64,22 @@ public class GameSessionHandler {
                     "\"state\":\"confirmed\"," +
                     "\"opponent\":\""+this.player1.getName()+"\"," +
                     "\"opponentIcon\":\""+this.player1.getIcon()+"\"}");
-            //Tell Clients who goes first
+            //Warte auf Spieler-Confirm
+        }
+        else if (message.equals("gameDenied")){
+            //Think that is all that needs cleaning
+            this.p1.send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"denied\"}");
+            this.p2.send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"denied\"}");
+            endGameSession();
+        }
+    }
+
+    /**
+     * Methode um beiden Clients zu sagen, wer anfängt bzw. wer am Zug ist
+     */
+    public void tellTurns(){
+        if (p1ready && p2ready){
+            //Tell Clients who goes first as both are ready
             if(player1Turn) {
                 this.p1.send("{\"topic\":\"gameSession\",\"command\":\"gameState\",\"info\":\"yourTurn\"}");
                 this.p2.send("{\"topic\":\"gameSession\",\"command\":\"gameState\",\"info\":\"opponentsTurn\"}");
@@ -77,24 +88,18 @@ public class GameSessionHandler {
                 this.p1.send("{\"topic\":\"gameSession\",\"command\":\"gameState\",\"info\":\"opponentsTurn\"}");
                 this.p2.send("{\"topic\":\"gameSession\",\"command\":\"gameState\",\"info\":\"yourTurn\"}");
             }
-            //Warte auf Spielerzüge
-            return true;
         }
-        else if (message.equals("gameDenied")){
-            //Think that is all that needs cleaning
-            this.p1.send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"denied\"}");
-            this.p2.send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"denied\"}");
-            endGameSession();
-            return false;
+        else {
+            //waiting for both players to be ready
+            System.out.println("both players not ready yet");
         }
-        return false;
     }
 
     /**
      * Methode zur Markierung der TicTacToe-Felder
-     * Speichert Markierung für Spieler im GameBoard
-     * Gibt Bestätigung zurück
-     * Lehnt ab, wenn Spieler nicht am Zug
+     * Speichert Markierung für Spieler im GameBoard.
+     * Gibt Bestätigung zurück.
+     * Lehnt ab, wenn Spieler nicht am Zug ist.
      * @param conn Verbindung des eingebenden Spielers
      * @param feld gewähltes Feld von links oben 1 bis rechts unten 9
      */
@@ -153,6 +158,7 @@ public class GameSessionHandler {
      *                  2 = Zeichen von Spieler 2
      */
     private void checkGameOver(Integer[] gameboard){
+        //Zeilen prüfen
         if ((gameboard[0] == 1 && gameboard[1] == 1 && gameboard[2] == 1) ||
                 (gameboard[3] == 1 && gameboard[4] == 1 && gameboard[5] == 1) ||
                 (gameboard[6] == 1 && gameboard[7] == 1 && gameboard[8] == 1)) {
@@ -214,7 +220,7 @@ public class GameSessionHandler {
         this.draw = true;
         for (int i = 0; i < Arrays.stream(gameboard).count(); i++) {
             if (gameboard[i] == 0) {
-                //still empty space on the board, not a draw yet, doing nothing
+                //still empty space on the board, not a draw yet
                 this.draw = false;
             }
         }
@@ -266,6 +272,26 @@ public class GameSessionHandler {
         catch (Exception e){
             System.out.println("Guess player wasn't there anymore..");
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Methode registriert, dass die Spieler bereit sind. Wird vom Server auf Nachricht des Clients aufgerufen.
+     * @param player Der Spieler, der bereit ist.
+     */
+    public void setPlayerReady(Player player) {
+        if (player == this.player1){
+            this.p1ready = true;
+            System.out.println("setting p1 ready: "+ this.p1ready);
+            System.out.println("p2 status: " + this.p2ready);
+        }
+        else if (player == this.player2){
+            this.p2ready = true;
+            System.out.println("setting p2 ready: "+ this.p2ready);
+            System.out.println("p1 status: " + this.p1ready);
+        }
+        else {
+            System.out.println("I dont know that player, cant be ready... this is bad");
         }
     }
 }
