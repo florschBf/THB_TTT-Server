@@ -158,11 +158,13 @@ public class GameSessionHandler {
      *                  2 = Zeichen von Spieler 2
      */
     private void checkGameOver(Integer[] gameboard){
+        boolean someoneWon = false;
         //Zeilen prüfen
         if ((gameboard[0] == 1 && gameboard[1] == 1 && gameboard[2] == 1) ||
                 (gameboard[3] == 1 && gameboard[4] == 1 && gameboard[5] == 1) ||
                 (gameboard[6] == 1 && gameboard[7] == 1 && gameboard[8] == 1)) {
             // 1 hat gewonnen
+            someoneWon = true;
             System.out.println("P1 hat gewonnen, sage Bescheid und beende Session");
             this.p1.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"youwin\"}");
             this.p2.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"youlose\"}");
@@ -172,6 +174,7 @@ public class GameSessionHandler {
                 (gameboard[3] == 2 && gameboard[4] == 2 && gameboard[5] == 2) ||
                 (gameboard[6] == 2 && gameboard[7] == 2 && gameboard[8] == 2)) {
             //2 won!
+            someoneWon = true;
             System.out.println("P2 hat gewonnen, sage Bescheid und beende Session");
             this.p1.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"youlose\"}");
             this.p2.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"youwin\"}");
@@ -183,6 +186,7 @@ public class GameSessionHandler {
                 (gameboard[1] == 1 && gameboard[4] == 1 && gameboard[7] == 1) ||
                 (gameboard[2] == 1 && gameboard[5] == 1 && gameboard[8] == 1)) {
             // 1 won!
+            someoneWon = true;
             System.out.println("P1 hat gewonnen, sage Bescheid und beende Session");
             this.p1.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"youwin\"}");
             this.p2.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"youlose\"}");
@@ -192,6 +196,7 @@ public class GameSessionHandler {
                 (gameboard[1] == 2 && gameboard[4] == 2 && gameboard[7] == 2) ||
                 (gameboard[2] == 2 && gameboard[5] == 2 && gameboard[8] == 2)) {
             //2 won!
+            someoneWon = true;
             System.out.println("P2 hat gewonnen, sage Bescheid und beende Session");
             this.p1.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"youlose\"}");
             this.p2.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"youwin\"}");
@@ -202,6 +207,7 @@ public class GameSessionHandler {
         if ((gameboard[0] == 1 && gameboard[4] == 1 && gameboard[8] == 1) ||
                 (gameboard[2] == 1 && gameboard[4] == 1 && gameboard[6] == 1)) {
             //1 won!
+            someoneWon = true;
             System.out.println("P1 hat gewonnen, sage Bescheid und beende Session");
             this.p1.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"youwin\"}");
             this.p2.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"youlose\"}");
@@ -210,26 +216,30 @@ public class GameSessionHandler {
         if ((gameboard[0] == 2 && gameboard[4] == 2 && gameboard[8] == 2) ||
                 (gameboard[2] == 2 && gameboard[4] == 2 && gameboard[6] == 2)) {
             //2 won!
+            someoneWon = true;
             System.out.println("P2 hat gewonnen, sage Bescheid und beende Session");
             this.p1.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"youlose\"}");
             this.p2.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"youwin\"}");
             endGameSession();
         }
 
-        // check for draw
-        this.draw = true;
-        for (int i = 0; i < Arrays.stream(gameboard).count(); i++) {
-            if (gameboard[i] == 0) {
-                //still empty space on the board, not a draw yet
-                this.draw = false;
+        if (someoneWon == false){
+            // check for draw
+            this.draw = true;
+            for (int i = 0; i < Arrays.stream(gameboard).count(); i++) {
+                if (gameboard[i] == 0) {
+                    //still empty space on the board, not a draw yet
+                    this.draw = false;
+                }
+            }
+            if (draw){
+                System.out.println("Unentschieden, sage Bescheid und beende Session");
+                this.p1.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"draw\"}");
+                this.p2.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"draw\"}");
+                endGameSession();
             }
         }
-        if (draw){
-            System.out.println("Unentschieden, sage Bescheid und beende Session");
-            this.p1.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"draw\"}");
-            this.p2.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"draw\"}");
-            endGameSession();
-        }
+        else { System.out.println("don't need to check for draw, have a winner already, doesnt matter if board is full"); }
     }
 
     public Player getPlayer1(){
