@@ -208,6 +208,7 @@ public class TicTacToeSocketServer extends WebSocketServer {
                 // Tell gamesession it's a player move to validate and execute
                 //GameSessionHandler also informs clients/players
                 //TODO gamesession lookup in every case is awkward but session on Player cannot be guaranteed @start of method
+                //could slice String to "Feld" and go from there to check the number to optimize...
                 //--> session creation @startgame is possible, shouldn't interfere there
                 logOnHandler.getPlayerByConn(conn).getGameSession().move(conn,0);
                 break;
