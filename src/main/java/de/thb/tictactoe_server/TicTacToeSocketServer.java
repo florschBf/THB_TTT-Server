@@ -153,7 +153,7 @@ public class TicTacToeSocketServer extends WebSocketServer {
                 //suche passende Gamesession und rufe dort "initGame" mit der message auf
                 try {
                     //IMPORTANT: Get players here before the gamesession is dropped - need them for potential broadcast as free
-                    //Game request answers are ALWAYS from player2 in the gamesession, thus we get them like this:
+                    //Game request answers are ALWAYS from player2 in the gamesession, because p1 initiated, thus we get them like this:
                     Player p2 = logOnHandler.getPlayerByConn(conn); //player2 send the answer
                     Player p1 = p2.getGameSession().getPlayer1(); //getting the original request origin player from the session
                     String answer = messageHandler.getStartGameReply(message);
@@ -168,8 +168,9 @@ public class TicTacToeSocketServer extends WebSocketServer {
                         //Spieler müssen wieder freigegeben werden - rest of cleanup in GameSessionHandler initGame method
                         broadcast(logOnHandler.setPlayerAsFree(p1));
                         broadcast(logOnHandler.setPlayerAsFree(p2));
-                        p1.getConn().send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"now\",\"reason\":\"opponentDisco\"}");
-                        conn.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"now\",\"reason\":\"opponentDisco\"}");
+                        p1.getConn().send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"denied\"}");
+                        //not sending to p2, client handled things already, doesn't need confirmation
+                        //conn.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"now\",\"reason\":\"opponentDisco\"}");
                     }
                 } catch (ParseException e) {
                     System.out.println("Error on game request answer - something wrong with the format.");
@@ -207,6 +208,7 @@ public class TicTacToeSocketServer extends WebSocketServer {
                 // Tell gamesession it's a player move to validate and execute
                 //GameSessionHandler also informs clients/players
                 //TODO gamesession lookup in every case is awkward but session on Player cannot be guaranteed @start of method
+                //could slice String to "Feld" and go from there to check the number to optimize...
                 //--> session creation @startgame is possible, shouldn't interfere there
                 logOnHandler.getPlayerByConn(conn).getGameSession().move(conn,0);
                 break;
