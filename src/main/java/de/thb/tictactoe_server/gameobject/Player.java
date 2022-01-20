@@ -15,6 +15,7 @@ public class Player implements GameObject{
     private String icon;
     private WebSocket conn = null;
     private boolean inGame = false;
+    private boolean busy = false;
     private GameSessionHandler gameSession;
 
     public Player(){
@@ -88,6 +89,17 @@ public class Player implements GameObject{
 
     public boolean getInGame(){
         return this.inGame;
+    }
+
+    public String isBusy() {
+        if (busy){
+            return "busy";
+        }
+        else { return "free";}
+    }
+
+    public void setBusy(boolean busy) {
+        this.busy = busy;
     }
 
     /**

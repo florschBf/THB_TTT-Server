@@ -1,5 +1,6 @@
 package de.thb.tictactoe_server.tttsockets;
 
+import de.thb.tictactoe_server.TicTacToeSocketServer;
 import de.thb.tictactoe_server.gameobject.Player;
 import org.java_websocket.WebSocket;
 
@@ -13,6 +14,7 @@ public class GameSessionHandler {
     private Player player1, player2;
     private Integer[] gameboard = {0,0,0,0,0,0,0,0,0};
     private WebSocket p1, p2;
+    private TicTacToeSocketServer server;
     private boolean player1Turn, p1ready = false, p2ready = false;
     private boolean draw = false;
     private Integer gameid = null;
@@ -23,11 +25,10 @@ public class GameSessionHandler {
      * @param player1 Spieler 1 mit websocket/uid/etc
      * @param player2 Spieler 2
      */
-    public GameSessionHandler(Player player1, Player player2) {
+    public GameSessionHandler(Player player1, Player player2, TicTacToeSocketServer server) {
         this.player1 = player1;
-        System.out.println(this.player1);
         this.player2 = player2;
-        System.out.println(this.player2);
+        this.server = server;
         if (player1 == player2){
             //prevented on client side, client can't see and select itself in list, not preventing it, just logging
             System.out.println("well, that's gonna be boring");
@@ -283,6 +284,7 @@ public class GameSessionHandler {
             System.out.println("Guess player wasn't there anymore..");
             e.printStackTrace();
         }
+        this.server.unbusyPlayers(this.player1, this.player2);
     }
 
     /**
