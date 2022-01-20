@@ -89,6 +89,7 @@ public class SocketLogOnHandler {
                 JSONObject info = new JSONObject();
                 info.put("name", player.getName());
                 info.put("playerUID", player.getUid());
+                info.put("busyState", player.isBusy());
                 list.put(i,info);
                 i++;
             }
@@ -156,9 +157,10 @@ public class SocketLogOnHandler {
      * @return String cmd zum Broadcast an alle in der Spielerliste, damit der Spieler dort auch als beschäftigt markiert werden kann.
      */
     public String setPlayerAsBusy(Player player){
+        player.setBusy(true);
         String playerID = player.getUid().toString();
         System.out.println("Setzte Player " + playerID + " als beschäftigt.");
-        String cmd = "{\"topic\":\"signup\",\"players\":\""+playerID+" is busy\"}";
+        String cmd = "{\"topic\":\"signup\",\"command\":\"updateState\",\"busy\":\""+playerID+"\"}";
         return cmd;
     }
 
@@ -168,11 +170,10 @@ public class SocketLogOnHandler {
      * @return String cmd zum Broadcast an alle in der Spielerliste, damit der Spieler dort auch wieder als frei markiert werden kann.
      */
     public String setPlayerAsFree(Player player){
+        player.setBusy(false);
         String playerID = player.getUid().toString();
         System.out.println("Setzte Player " + playerID + " als frei.");
-        String cmd = "{\"topic\":\"signup\",\"players\":\""+playerID+" is available\"}";
-        player.setInGame(false);
-        player.setGameSession(null);
+        String cmd = "{\"topic\":\"signup\",\"command\":\"updateState\",\"free\":\""+playerID+"\"}";
         return cmd;
     }
 

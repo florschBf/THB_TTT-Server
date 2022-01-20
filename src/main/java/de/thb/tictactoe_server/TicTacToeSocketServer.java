@@ -25,7 +25,7 @@ public class TicTacToeSocketServer extends WebSocketServer {
         super(address);
         this.messageHandler = new SocketMessageHandler();
         this.logOnHandler = new SocketLogOnHandler();
-        this.randomQueue = new RandomQueueHandler();
+        this.randomQueue = new RandomQueueHandler(this);
     }
 
     /**
@@ -126,7 +126,7 @@ public class TicTacToeSocketServer extends WebSocketServer {
                         conn.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"now\",\"reason\":\"opponentDisco\"}");
                         break;
                     }
-                    GameSessionHandler session = new GameSessionHandler(player1, player2);
+                    GameSessionHandler session = new GameSessionHandler(player1, player2, this);
                     //sending challenge to player2, telling p1 to wait
                     conn.send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"hold\"}");
                     player2.getConn().send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"challenged\",\"opponent\":\"" + player1.getName() + "\"}");
@@ -144,10 +144,13 @@ public class TicTacToeSocketServer extends WebSocketServer {
                     requestee.setIcon("0");
                 }
                 randomQueue.addPlayerToQueue(requestee);
+                broadcast(logOnHandler.setPlayerAsBusy(requestee));
                 //this automatically triggers games for the client in RandomQueueHandler if someone else wants to play
                 break;
             case ("stopRandom"):
-                randomQueue.removePlayerFromQueue(logOnHandler.getPlayerByConn(conn));
+                Player quitter = logOnHandler.getPlayerByConn(conn);
+                randomQueue.removePlayerFromQueue(quitter);
+                broadcast(logOnHandler.setPlayerAsFree(quitter));
                 break;
             case ("game request answer"):
                 //suche passende Gamesession und rufe dort "initGame" mit der message auf
@@ -268,8 +271,9 @@ public class TicTacToeSocketServer extends WebSocketServer {
         this.logOnHandler.addConnToPlayerList(newPlayer);
     }
 
-    private void unbusyPlayers(Boolean gameFailed, Player p1, Player p2){
-
+    public void unbusyPlayers(Player p1, Player p2){
+        broadcast(this.logOnHandler.setPlayerAsFree(p1));
+        broadcast(this.logOnHandler.setPlayerAsFree(p2));
     }
 }
 
