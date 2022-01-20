@@ -1,11 +1,17 @@
 package de.thb.tictactoe_server.tttsockets;
 
+import de.thb.tictactoe_server.TicTacToeSocketServer;
 import de.thb.tictactoe_server.gameobject.Player;
 
 import java.util.ArrayList;
 
 public class RandomQueueHandler {
     private final ArrayList<Player> randomQueue = new ArrayList<>();
+    private TicTacToeSocketServer server;
+
+    public RandomQueueHandler(TicTacToeSocketServer server){
+        this.server = server;
+    }
 
     /**
      * Methode zum Hinzufügen von Spielern in die Zufallsspielliste
@@ -26,7 +32,7 @@ public class RandomQueueHandler {
         if (countQueue() > 1){
             //we got someone else, should be infront of p1, lets play
             Player p2 = returnFirstInQueue(); //this removes the person from the queue!
-            GameSessionHandler newGame = new GameSessionHandler(p1,p2);
+            GameSessionHandler newGame = new GameSessionHandler(p1, p2, this.server);
             newGame.initGame("gameConfirmed"); //auto confirming here, no need to query players again
             //remove player from queue, he got a match, p2 should be removed already
             removePlayerFromQueue(p1);
