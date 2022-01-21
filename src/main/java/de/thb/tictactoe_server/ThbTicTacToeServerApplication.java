@@ -3,14 +3,14 @@ package de.thb.tictactoe_server;
 import org.java_websocket.server.WebSocketServer;
 //import org.springframework.boot.CommandLineRunner;
 //import org.springframework.boot.SpringApplication;
-//import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 //import org.springframework.context.ApplicationContext;
 //import org.springframework.context.annotation.Bean;
 
 import java.net.InetSocketAddress;
 
 
-//@SpringBootApplication
+@SpringBootApplication
 public class ThbTicTacToeServerApplication {
 
     public static void main(String[] args) throws InterruptedException {
