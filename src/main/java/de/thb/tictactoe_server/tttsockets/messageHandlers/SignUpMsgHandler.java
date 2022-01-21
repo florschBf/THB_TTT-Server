@@ -4,8 +4,16 @@ import org.json.simple.JSONObject;
 
 import java.util.Objects;
 
+/**
+ * Klasse zum Auslesen der Spielzüge aus den Nachrichten, die mit "topic":"signup" gekennzeichnet sind.
+ */
 public class SignUpMsgHandler implements MsgHandler {
 
+    /**
+     * Method to handle messages received regarding the topic 'signup'
+     * @param payload the message already parsed as JSONObject
+     * @return String that transports needed actions to respond to the message
+     */
     public String handle(JSONObject payload){
         if (!Objects.equals(payload.get("topic").toString(), "signup")){
             System.out.println("shouldnt be here");
@@ -32,7 +40,6 @@ public class SignUpMsgHandler implements MsgHandler {
                 default:
                     return "Error, not a valid signup command";
             }
-
         }
     }
 }

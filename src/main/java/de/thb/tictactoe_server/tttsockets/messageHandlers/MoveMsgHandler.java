@@ -8,6 +8,12 @@ import java.util.Objects;
  * Klasse zum Auslesen der Spielzüge aus den Nachrichten, die mit "topic":"gameMove" gekennzeichnet sind.
  */
 public class MoveMsgHandler implements MsgHandler {
+
+    /**
+     * Method to handle messages received regarding the topic 'gameMove'
+     * @param payload the message already parsed as JSONObject
+     * @return String that transports needed actions to respond to the message
+     */
     @Override
     public String handle(JSONObject payload) {
         if (!Objects.equals(payload.get("topic").toString(), "gameMove")){

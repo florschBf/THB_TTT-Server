@@ -4,7 +4,16 @@ import org.json.simple.JSONObject;
 
 import java.util.Objects;
 
+/**
+ * Klasse zum Auslesen der Spielzüge aus den Nachrichten, die mit "topic":"gameSession" gekennzeichnet sind.
+ */
 public class GameSessionMsgHandler implements MsgHandler {
+
+    /**
+     * Method to handle messages received regarding the topic 'gameSession'
+     * @param payload the message already parsed as JSONObject
+     * @return String that transports needed actions to respond to the message
+     */
     @Override
     public String handle(JSONObject payload) {
         if (!Objects.equals(payload.get("topic").toString(), "gameSession")){
@@ -68,5 +77,4 @@ public class GameSessionMsgHandler implements MsgHandler {
         }
         return "Error";
     }
-
 }

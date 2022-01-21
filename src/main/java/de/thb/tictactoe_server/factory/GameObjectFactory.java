@@ -16,7 +16,6 @@ public class GameObjectFactory {
      * @return The desired object, e.g. Player
      */
     public GameObject getGameObject(String objectType){
-
         if (Objects.equals(objectType, "Player")){
             return new Player();
         }
