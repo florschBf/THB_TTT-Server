@@ -260,7 +260,6 @@ public class GameSessionHandler {
         else { p1.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"now\",\"reason\":\"opponentDisco\"}"); }
         System.out.println("closing game session");
         endGameSession();
-
     }
 
     /**

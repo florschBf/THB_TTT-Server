@@ -5,6 +5,10 @@ import de.thb.tictactoe_server.gameobject.Player;
 
 import java.util.ArrayList;
 
+/**
+ * Class to maintain and handle a random game queue for clients who wish to participate
+ * organizes gamesessions between players as well
+ */
 public class RandomQueueHandler {
     private final ArrayList<Player> randomQueue = new ArrayList<>();
     private TicTacToeSocketServer server;
@@ -24,10 +28,18 @@ public class RandomQueueHandler {
         startGameWithRandom(player);
     }
 
+    /**
+     * Methode zum Entfernen von Spielern aus der Zufallspielliste
+     * @param player Der zu entfernende Spieler
+     */
     public void removePlayerFromQueue(Player player){
         this.randomQueue.remove(player);
     }
 
+    /**
+     * Method tries to start a game
+     * @param p1
+     */
     public void startGameWithRandom(Player p1){
         if (countQueue() > 1){
             //we got someone else, should be infront of p1, lets play

@@ -32,39 +32,32 @@ public class Player implements GameObject{
         this.conn = conn;
     }
 
+    // Getters und Setters
     public String getIcon() {
         return icon;
     }
-
     public void setIcon(String icon) {
         this.icon = icon;
     }
-
     public void setGameSession(GameSessionHandler session){
         this.gameSession = session;
     }
-
     public GameSessionHandler getGameSession(){
         System.out.println("Finding gameSession: " + this.gameSession);
         return this.gameSession;
     }
-
     public String getName(){
         return name;
     }
-
     public Integer getUid(){
         return uid;
     }
-
     public String getFirebaseId() {
         return firebaseId;
     }
-
     public void setUid (){
         this.uid = this.getConn().hashCode();
     }
-
     public void setUid(Integer uid){
         this.uid = uid;
     }
@@ -74,30 +67,24 @@ public class Player implements GameObject{
     public void setFirebaseId(String firebaseId){
         this.firebaseId = firebaseId;
     }
-
     public WebSocket getConn() {
         return conn;
     }
-
     public void setConn(WebSocket conn) {
         this.conn = conn;
     }
-
     public void setInGame(boolean statusUpdate){
         this.inGame = statusUpdate;
     }
-
     public boolean getInGame(){
         return this.inGame;
     }
-
     public String isBusy() {
         if (busy){
             return "busy";
         }
         else { return "free";}
     }
-
     public void setBusy(boolean busy) {
         this.busy = busy;
     }

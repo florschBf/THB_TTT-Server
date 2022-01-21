@@ -104,6 +104,12 @@ public class SocketMessageHandler {
         }
     }
 
+    /**
+     * Method extracts a player icon ID from a message for transfer to opponent(s)
+     * @param message the received websocket message
+     * @return String of the icon ID for use in Android app
+     * @throws ParseException
+     */
     public String getPlayerIconIdFromMessage(String message) throws ParseException {
         System.out.println("looking for playerIcon");
         JSONObject payload = parseJSONString(message);

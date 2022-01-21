@@ -7,7 +7,10 @@ import org.json.simple.JSONObject;
 import java.util.ArrayList;
 import java.util.Objects;
 
-
+/**
+ * Class to handle websockets logging on and off
+ * stores them as Player objects in ArrayList playerList
+ */
 public class SocketLogOnHandler {
     private final ArrayList<Player> playerList = new ArrayList<>();
 
@@ -119,16 +122,6 @@ public class SocketLogOnHandler {
             }
         }
         return gesuchter;
-    }
-
-    //TODO think this is broken -> not in use though, need to try
-    //aktuell meist getPlayerByUid -> player.getConn() als Umweg - ist im Endeffekt, was hier auch gemacht wird
-    //tendenziell einfach löschen
-    public WebSocket getConnByUid(Integer uid){
-        System.out.println("Looking for this guy " + uid);
-        System.out.println(this.returnPlayers());
-        Player player = this.playerList.stream().findAny().filter(p -> (Objects.equals(p.getUid(), uid))).orElseThrow();
-        return player.getConn();
     }
 
     /**
