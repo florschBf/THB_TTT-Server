@@ -46,7 +46,7 @@ public class TicTacToeSocketServer extends WebSocketServer {
      * @param conn the closed connection to process
      * @param code websocket status code
      * @param reason given reason
-     * @param remote irrelevant ;-)
+     * @param remote irrelevant for the moment
      */
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
@@ -169,8 +169,7 @@ public class TicTacToeSocketServer extends WebSocketServer {
                     else {
                         //Game was denied or failed, Gamesession returned false or nothing
                         //Spieler müssen wieder freigegeben werden - rest of cleanup in GameSessionHandler initGame method
-                        broadcast(logOnHandler.setPlayerAsFree(p1));
-                        broadcast(logOnHandler.setPlayerAsFree(p2));
+                        p1.getGameSession().endGameSession();
                         p1.getConn().send("{\"topic\":\"gameSession\",\"command\":\"startgame\",\"state\":\"denied\"}");
                         //not sending to p2, client handled things already, doesn't need confirmation
                         //conn.send("{\"topic\":\"gameSession\",\"command\":\"quitgame\",\"state\":\"now\",\"reason\":\"opponentDisco\"}");
@@ -271,6 +270,11 @@ public class TicTacToeSocketServer extends WebSocketServer {
         this.logOnHandler.addConnToPlayerList(newPlayer);
     }
 
+    /**
+     * Methode um zwei Spieler nach Ihrem Spiel wieder für andere Clients verfügbar zu setzen
+     * @param p1 Player-Objekt das freigeschaltet werden soll
+     * @param p2 Player-Objekt das freigeschaltet werden soll
+     */
     public void unbusyPlayers(Player p1, Player p2){
         broadcast(this.logOnHandler.setPlayerAsFree(p1));
         broadcast(this.logOnHandler.setPlayerAsFree(p2));
